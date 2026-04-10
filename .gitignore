@@ -1,0 +1,14 @@
+# Cloned agent repositories (not part of the review repo)
+CLIO/
+codex/
+gemini-cli/
+memU/
+nanobot/
+nanoclaw/
+nullclaw/
+openclaw/
+
+# OS / editor
+.DS_Store
+*.swp
+*~
