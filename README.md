@@ -32,6 +32,7 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 | Agent | Language | Repo |
 |-------|----------|------|
 | [memU](reviews/frameworks/memu.md) | Python | [NevaMind-AI/memU](https://github.com/NevaMind-AI/memU) |
+| [GBrain](reviews/frameworks/gbrain.md) | TypeScript | [garrytan/gbrain](https://github.com/garrytan/gbrain) |
 
 ## Comparisons
 

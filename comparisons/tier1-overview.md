@@ -17,6 +17,7 @@
 | Codex CLI | Coding | Rust | Apache-2.0 | OpenAI's local-first coding agent with sandboxed execution |
 | Gemini CLI | Coding | TypeScript | Apache-2.0 | Google's terminal agent — Gemini models, Search grounding, 1M context |
 | memU | Framework | Python | Apache-2.0 | Memory framework for 24/7 proactive agents, reduces LLM token costs |
+| GBrain | Framework | TypeScript | MIT | Personal "second brain" — markdown into pgvector, exposed via MCP and CLI |
 
 ---
 

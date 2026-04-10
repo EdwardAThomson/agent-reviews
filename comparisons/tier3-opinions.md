@@ -19,6 +19,7 @@
 | Codex CLI | 4/5 | Late Beta / Early Production | Significant | Moderate (96 crates, god-file) | High (OpenAI Responses API only) |
 | Gemini CLI | 4/5 | Late Beta / Early Production | High | 4/5 (clean monorepo) | High (Gemini-only) |
 | memU | 3.5/5 | Late Alpha / Early Beta | High | Mixed (pipeline good, mixins complex) | Low (multi-backend) |
+| GBrain | 4/5 | Alpha | High | Good (small, contract-first) | Moderate (pgvector + OpenAI embeds) |
 
 ---
 
@@ -47,6 +48,7 @@ Prototype    Alpha         Beta              Production
 | Codex CLI | Two-phase memory with different models at different cost tiers | Clever resource optimization for background cognitive work |
 | Gemini CLI | Local Gemma classifier for model routing + memory/perf regression baselines | On-device intelligence for cost optimization; unusually mature testing practice |
 | memU | Tiered retrieval cascade with LLM sufficiency checks | Stops early when category summary suffices; saves LLM calls |
+| GBrain | Compiled truth + timeline knowledge model; contract-first operations | Separates rewritable understanding from append-only evidence; one definition generates CLI, MCP, and tools-json |
 
 ---
 
@@ -62,6 +64,7 @@ Prototype    Alpha         Beta              Production
 | Codex CLI | 7,961-line god-file; OpenAI lock-in deeper than advertised | Medium | No |
 | Gemini CLI | Complete Gemini vendor lock-in; Google discontinuation risk | Medium | Partially (Apache-2.0, open source) |
 | memU | Rust stub for no value; no e2e tests; possible uninstallable numpy pin | High | No |
+| GBrain | 5 days old, 1 contributor; global mutable DB connection; stub features | Medium | Partially (core loop works, stubs are peripheral) |
 
 ---
 
@@ -77,6 +80,7 @@ Prototype    Alpha         Beta              Production
 | Sandboxed local coding with OpenAI models | **Codex CLI** | Multi-platform sandboxes, local model support |
 | Free coding assistance with Google Search grounding | **Gemini CLI** | 60 req/min free tier, native search, 1M context |
 | Structured memory for your own agent project | **memU** | Tiered retrieval, salience scoring, multi-DB support |
+| Semantic search over a large markdown knowledge base | **GBrain** | Hybrid pgvector search, MCP-native, 3-tier chunking, compiled truth model |
 
 ---
 
@@ -97,3 +101,5 @@ Prototype    Alpha         Beta              Production
 **Gemini CLI** — Well-engineered coding agent with genuinely novel features (Gemma model routing, platform-native sandboxing, regression baselines) and production-grade infrastructure. Excellent if you're in the Google ecosystem. Complete Gemini vendor lock-in is the hard tradeoff.
 
 **memU** — Genuinely innovative architecture for structured agent memory with tiered retrieval and salience scoring as strong differentiators. Realistically late alpha despite v1.5.1 label. Promising for experimentation, needs hardening before production use.
+
+**GBrain** — A well-architected alpha-stage personal knowledge management system that makes large markdown corpora semantically searchable for AI agents. Contract-first design, three-tier chunking, and compiled-truth-plus-timeline model show genuine thoughtfulness. Very new (5 days old) but high code quality and comprehensive testing for its age.
