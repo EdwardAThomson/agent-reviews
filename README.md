@@ -31,6 +31,7 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 | [OpenHands](reviews/coding/openhands.md) | Python | [OpenHands/OpenHands](https://github.com/OpenHands/OpenHands) |
 | [Goose](reviews/coding/goose.md) | Rust | [block/goose](https://github.com/block/goose) |
 | [SWE-agent](reviews/coding/swe-agent.md) | Python | [SWE-agent/SWE-agent](https://github.com/SWE-agent/SWE-agent) |
+| [Plandex](reviews/coding/plandex.md) | Go | [plandex-ai/plandex](https://github.com/plandex-ai/plandex) |
 
 ### Category C — Agent Frameworks/Libraries
 

@@ -1,13 +1,33 @@
 # Recommendations Guide
 
-**Based on:** Code-level review of 13 open-source AI agent projects, April 2026
+**Based on:** Code-level review of 15 open-source AI agent projects, April 2026
 **Methodology:** See [METHODOLOGY.md](METHODOLOGY.md) | **Full reviews:** See [reviews/](reviews/)
 
 This guide translates our technical findings into practical guidance for different audiences. Every recommendation is backed by evidence from the individual reviews — follow the links for details.
 
 ---
 
+## A Note on Claude Code and Closed-Source Agents
+
+This review covers **open-source agents only** — projects where we can read, audit, and assess the actual source code. Several widely-used coding agents are closed-source and therefore not reviewed here, but deserve acknowledgement:
+
+- **Claude Code** (Anthropic) is arguably the most widely adopted AI coding CLI as of April 2026. It is distributed as a bundled npm package; the [GitHub repo](https://github.com/anthropics/claude-code) serves primarily as an issue tracker and documentation hub. We cannot assess its architecture, security, or code quality because the source is not available. If you are evaluating agents and Claude Code is an option, it should be on your shortlist alongside the open-source tools below — but you'll be trusting Anthropic's engineering rather than verifying it yourself.
+- **Cursor** and **Windsurf** are popular AI-enhanced IDEs with closed-source agent components.
+- **GitHub Copilot** (in agent mode) is similarly closed-source.
+
+The open-source agents reviewed here are not necessarily inferior — Cline (46 providers, human-in-the-loop), Aider (battle-tested, git-native), and Goose (MCP-first, multi-layer security) are all serious tools. The difference is transparency: with open source, you can audit exactly what runs on your machine.
+
+---
+
+## A Note on "Codex CLI"
+
+Throughout this guide, **Codex CLI** refers to [OpenAI's open-source local coding agent](https://github.com/openai/codex) (`@openai/codex` on npm) — a Rust-based CLI tool. This is **not** the similarly named OpenAI Codex language model variants. The naming is confusing but they are unrelated products.
+
+---
+
 ## By Organisation Type
+
+The categories below are sized by team, but the tools themselves don't enforce size limits. An enterprise recommendation like Codex CLI works perfectly well for a solo developer; an SME pick like Aider scales to large teams. The difference is in what matters most at each scale — enterprises weight security and compliance, SMEs weight operational simplicity, soloists weight speed and cost.
 
 ### Enterprise (500+ engineers)
 
@@ -19,12 +39,14 @@ This guide translates our technical findings into practical guidance for differe
 | [Gemini CLI](reviews/coding/gemini-cli.md) | Free tier (60 req/min), Google Search grounding, TOML policy engine, platform-native sandboxing. Apache-2.0. | Gemini-only. Google discontinuation risk. Clearcut telemetry sends data to Google. |
 | [Cline](reviews/coding/cline.md) | 46 providers (no vendor lock-in), human-in-the-loop by default, enterprise features (SSO, audit trails, remote config). Apache-2.0. | 96 runtime dependencies. Complex to self-host. PostHog telemetry. |
 | [OpenHands](reviews/coding/openhands.md) | Docker/K8s sandboxing, enterprise RBAC, multi-provider via litellm, 77.6% SWE-Bench. MIT core. | Enterprise directory has proprietary license. V0/V1 migration in progress. ~90 dependencies. |
+| [Goose](reviews/coding/goose.md) | 25+ providers, MCP-first extensions (70+), multi-layer security pipeline, local inference, desktop app. Apache-2.0. | Security inspection disabled by default. Large files in core. PostHog telemetry on by default. |
 
 **Key enterprise considerations:**
-- **Licensing:** All four above are Apache-2.0 or MIT. Avoid CLIO (GPL-3.0) and AutoGPT platform (PolyForm Shield) if you need to extend or embed.
+- **Licensing:** All five above are Apache-2.0 or MIT. Avoid CLIO (GPL-3.0) and AutoGPT platform (PolyForm Shield) if you need to extend or embed.
 - **Security:** Codex CLI and Gemini CLI have the most thorough sandboxing. OpenHands adds pluggable security analyzers. Cline relies on human approval rather than technical sandboxing.
-- **Vendor lock-in:** Cline is the safest bet (46 providers). OpenHands via litellm is also flexible. Codex and Gemini are vendor-locked despite branding otherwise.
-- **Self-hosting:** OpenHands has the most mature self-hosted enterprise path (K8s, Helm). Codex CLI and Gemini CLI are local-first (no server needed). Cline is a VS Code extension (no infrastructure).
+- **Vendor lock-in:** Cline is the safest bet (46 providers). Goose (25+ providers, MCP-first) and OpenHands (litellm) are also flexible. Codex CLI and Gemini CLI are vendor-locked despite branding otherwise.
+- **Self-hosting:** OpenHands has the most mature self-hosted enterprise path (K8s, Helm). Codex CLI, Gemini CLI, and Goose are local-first (no server needed). Cline is a VS Code extension (no infrastructure).
+- **Security depth:** Goose has the most sophisticated security pipeline (pattern matching + ML + LLM adversary review + permissions). Codex CLI has the best sandboxing (Landlock+seccomp+bubblewrap on Linux, Seatbelt on macOS, restricted tokens on Windows).
 
 ### SME (10-100 engineers)
 
@@ -35,6 +57,7 @@ This guide translates our technical findings into practical guidance for differe
 | [Aider](reviews/coding/aider.md) | Zero infrastructure, pip install, works with any git repo. Multi-provider via litellm. | Teams that live in the terminal and want git-native AI assistance with minimal setup. |
 | [Cline](reviews/coding/cline.md) | VS Code native, no infrastructure beyond the extension. Multi-provider. | Teams standardised on VS Code who want in-IDE assistance. |
 | [Gemini CLI](reviews/coding/gemini-cli.md) | Free tier means zero cost to trial. No API key needed (Google OAuth). | Budget-conscious teams willing to use Gemini models. |
+| [Goose](reviews/coding/goose.md) | Multi-provider, desktop app + CLI, MCP extensions, local inference option. | Teams wanting a versatile agent that goes beyond just coding (research, writing, automation). |
 
 **For an internal AI assistant (chat, tasks, automation):**
 
@@ -69,6 +92,8 @@ This guide translates our technical findings into practical guidance for differe
 | Build on a clean, small codebase | [Nanobot](reviews/general-purpose/nanobot.md) | Self-describes as "research-ready," clean Python, 26.5k LOC |
 | Study performance constraints | [NullClaw](reviews/general-purpose/nullclaw.md) | 237k LOC of Zig with 6,395 tests, zero-leak guarantees, vtable architecture |
 | Build visual agent workflows | [AutoGPT](reviews/frameworks/autogpt.md) | Block-based builder, 90+ integrations, marketplace ecosystem |
+| Benchmark on SWE-bench | [SWE-agent](reviews/coding/swe-agent.md) | Pioneered ACI concept, first-class SWE-bench integration (NeurIPS 2024). Note: entering maintenance mode |
+| Study tool inspection/security | [Goose](reviews/coding/goose.md) | Most sophisticated multi-layer security pipeline of any reviewed agent |
 
 ---
 
@@ -86,7 +111,7 @@ This guide translates our technical findings into practical guidance for differe
 
 | Lock-in level | Agents |
 |---------------|--------|
-| None (multi-provider) | Cline (46), NullClaw (95+), Nanobot (25+), Aider (litellm), OpenHands (litellm) |
+| None (multi-provider) | Cline (46), Goose (25+), NullClaw (95+), Nanobot (25+), Aider (litellm), OpenHands (litellm) |
 | Moderate (shaped by one vendor) | OpenClaw (Claude-shaped), AutoGPT (multi but OpenAI-centric) |
 | High (single vendor) | NanoClaw (Claude-only), Codex CLI (OpenAI Responses API), Gemini CLI (Gemini-only) |
 
@@ -130,7 +155,7 @@ This guide translates our technical findings into practical guidance for differe
 | **Sustainability (bus factor)** | CLIO (1 human), GBrain (1 human, 5 days old), NanoClaw (small team) | Assess whether you could fork and maintain if the project stalls. Prefer projects with multiple active contributors |
 | **Licensing restrictions** | AutoGPT (PolyForm Shield), CLIO (GPL-3.0) | Legal review before adoption. MIT and Apache-2.0 are safest for commercial use |
 | **Dependency bloat** | Cline (96 deps), OpenHands (~90), AutoGPT (~100+100) | Accept for managed tools (VS Code extensions). Prefer lean for self-hosted (NanoClaw: 3, NullClaw: 3, CLIO: 0) |
-| **Data privacy** | Tools with telemetry: Cline (PostHog), Aider (Mixpanel+PostHog), Gemini CLI (Clearcut) | Check opt-out mechanisms. Self-hosted tools (NanoClaw, NullClaw, CLIO) send no telemetry |
+| **Data privacy** | Tools with telemetry: Cline (PostHog), Aider (Mixpanel+PostHog), Gemini CLI (Clearcut), Goose (PostHog) | Check opt-out mechanisms. Self-hosted tools (NanoClaw, NullClaw, CLIO) send no telemetry |
 | **Rapid evolution** | OpenHands (V0/V1 migration), Nanobot (alpha), GBrain (5 days old) | Pin to specific versions. Re-evaluate quarterly |
 
 ---
@@ -141,15 +166,21 @@ This guide translates our technical findings into practical guidance for differe
 What do you need?
 │
 ├─ Coding assistance
+│  ├─ OK with closed-source?
+│  │  └─ Yes → also evaluate Claude Code (Anthropic), Cursor, Windsurf, GitHub Copilot
 │  ├─ In the terminal?
 │  │  ├─ Multi-provider, battle-tested → Aider
+│  │  ├─ Multi-provider, extensible, also does non-code tasks → Goose
 │  │  ├─ Sandboxed, OpenAI ecosystem → Codex CLI
 │  │  ├─ Free, Google ecosystem → Gemini CLI
+│  │  ├─ Large projects, plan/branch workflow → Plandex (⚠️ dormant since Oct 2025)
 │  │  └─ Zero dependencies, runs anywhere → CLIO
 │  ├─ In VS Code?
 │  │  └─ Cline (only serious option, and it's very good)
-│  └─ Full platform with sandbox + web UI?
-│     └─ OpenHands
+│  ├─ Full platform with sandbox + web UI?
+│  │  └─ OpenHands
+│  └─ Research / SWE-bench evaluation?
+│     └─ SWE-agent (note: entering maintenance mode → consider mini-SWE-agent)
 │
 ├─ Personal/team AI assistant
 │  ├─ Minimal, secure, Claude-based → NanoClaw
