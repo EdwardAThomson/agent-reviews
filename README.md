@@ -45,6 +45,14 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 - [Tier 2 — Capabilities](comparisons/tier2-capabilities.md) — Architecture, LLM integration, tools, security
 - [Tier 3 — Opinions](comparisons/tier3-opinions.md) — Code quality, maturity, innovation, red flags
 
+## Recommendations
+
+See [RECOMMENDATIONS.md](RECOMMENDATIONS.md) for practical guidance:
+- Which agent to use by organisation type (enterprise, SME, solo, researcher)
+- Adoption strategy (evaluate, pilot, scale)
+- Risk matrix (vendor lock-in, security, sustainability, licensing)
+- Quick decision tree
+
 ## Methodology
 
 See [METHODOLOGY.md](METHODOLOGY.md) for the full review process, tier definitions, and per-agent checklist.
