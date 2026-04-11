@@ -1,5 +1,8 @@
 # Cloned agent repositories (not part of the review repo)
+aider/
+AutoGPT/
 CLIO/
+cline/
 codex/
 gbrain/
 gemini-cli/
@@ -7,6 +10,7 @@ memU/
 nanobot/
 nanoclaw/
 nullclaw/
+OpenHands/
 openclaw/
 
 # OS / editor
