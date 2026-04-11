@@ -18,7 +18,6 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 | [NullClaw](reviews/general-purpose/nullclaw.md) | Zig | [nullclaw/nullclaw](https://github.com/nullclaw/nullclaw) |
 | [NanoClaw](reviews/general-purpose/nanoclaw.md) | TypeScript | [qwibitai/nanoclaw](https://github.com/qwibitai/nanoclaw) |
 | [Nanobot](reviews/general-purpose/nanobot.md) | Python | [HKUDS/nanobot](https://github.com/HKUDS/nanobot) |
-| [AutoGPT](reviews/general-purpose/autogpt.md) | Python + TypeScript | [Significant-Gravitas/AutoGPT](https://github.com/Significant-Gravitas/AutoGPT) |
 
 ### Category B — Coding Agents
 
@@ -37,6 +36,7 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 |-------|----------|------|
 | [memU](reviews/frameworks/memu.md) | Python | [NevaMind-AI/memU](https://github.com/NevaMind-AI/memU) |
 | [GBrain](reviews/frameworks/gbrain.md) | TypeScript | [garrytan/gbrain](https://github.com/garrytan/gbrain) |
+| [AutoGPT](reviews/frameworks/autogpt.md) | Python + TypeScript | [Significant-Gravitas/AutoGPT](https://github.com/Significant-Gravitas/AutoGPT) |
 
 ## Comparisons
 
