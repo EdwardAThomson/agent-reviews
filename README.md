@@ -29,6 +29,8 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 | [Aider](reviews/coding/aider.md) | Python | [Aider-AI/aider](https://github.com/Aider-AI/aider) |
 | [Cline](reviews/coding/cline.md) | TypeScript | [cline/cline](https://github.com/cline/cline) |
 | [OpenHands](reviews/coding/openhands.md) | Python | [OpenHands/OpenHands](https://github.com/OpenHands/OpenHands) |
+| [Goose](reviews/coding/goose.md) | Rust | [block/goose](https://github.com/block/goose) |
+| [SWE-agent](reviews/coding/swe-agent.md) | Python | [SWE-agent/SWE-agent](https://github.com/SWE-agent/SWE-agent) |
 
 ### Category C — Agent Frameworks/Libraries
 

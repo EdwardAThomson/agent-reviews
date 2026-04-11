@@ -6,12 +6,14 @@ cline/
 codex/
 gbrain/
 gemini-cli/
+goose/
 memU/
 nanobot/
 nanoclaw/
 nullclaw/
 OpenHands/
 openclaw/
+SWE-agent/
 
 # OS / editor
 .DS_Store
