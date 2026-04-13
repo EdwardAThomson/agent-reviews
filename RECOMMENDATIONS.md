@@ -1,6 +1,6 @@
 # Recommendations Guide
 
-**Based on:** Code-level review of 15 open-source AI agent projects, April 2026
+**Based on:** Code-level review of 16 open-source AI agent projects, April 2026
 **Methodology:** See [METHODOLOGY.md](METHODOLOGY.md) | **Full reviews:** See [reviews/](reviews/)
 
 This guide translates our technical findings into practical guidance for different audiences. Every recommendation is backed by evidence from the individual reviews — follow the links for details.
@@ -93,6 +93,7 @@ The categories below are sized by team, but the tools themselves don't enforce s
 | Study performance constraints | [NullClaw](reviews/general-purpose/nullclaw.md) | 237k LOC of Zig with 6,395 tests, zero-leak guarantees, vtable architecture |
 | Build visual agent workflows | [AutoGPT](reviews/frameworks/autogpt.md) | Block-based builder, 90+ integrations, marketplace ecosystem |
 | Benchmark on SWE-bench | [SWE-agent](reviews/coding/swe-agent.md) | Pioneered ACI concept, first-class SWE-bench integration (NeurIPS 2024). Note: entering maintenance mode |
+| Study agent self-improvement / RL | [Hermes Agent](reviews/general-purpose/hermes-agent.md) | Skill creation from experience, trajectory compression, Atropos RL training integration |
 | Study tool inspection/security | [Goose](reviews/coding/goose.md) | Most sophisticated multi-layer security pipeline of any reviewed agent |
 
 ---
@@ -204,4 +205,5 @@ Trends and projects worth monitoring as the landscape evolves:
 - **Memory standardisation** — memU, GBrain, and the various per-agent memory systems all solve the same problem differently. A winner or standard may emerge.
 - **Multi-agent protocols** — A2A (Google), ACP, and custom implementations are proliferating. Interoperability is the next frontier.
 - **Cost optimisation** — Aider's prompt cache warming, OpenClaw's cache stability, Gemini's Gemma routing, and Codex's two-phase memory all attack cost from different angles. This will matter more as usage scales.
+- **Self-improving agents** — Hermes Agent's skill loop (creating reusable skills from complex task trajectories) is the first serious implementation of agents that learn from their own experience. If this pattern matures, it could shift the value proposition from "stateless tool" to "apprentice that gets better over time."
 - **Regulation** — EU AI Act and emerging US guidance may affect how agents execute code, access systems, and make decisions. Agents with clear audit trails (OpenClaw, Cline, OpenHands) are better positioned.
