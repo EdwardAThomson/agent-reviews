@@ -94,4 +94,4 @@ Clean package boundaries and protocol-based extensibility are strengths. Test in
 
 ### Summary
 
-A genuinely well-engineered multi-agent framework with the cleanest actor-model architecture in the space, a thoughtful separation between low-level runtime and high-level team APIs, a working cross-language distributed runtime, and a paper-backed orchestrator in Magentic-One. The killer issue is status: AutoGen is in maintenance mode, Microsoft directs new projects to Agent Framework, and the library never reached 1.0. Worth reading the source for architectural ideas. Not worth starting new production work on.
+A genuinely well-engineered multi-agent framework with the cleanest actor-model architecture in the space, a thoughtful separation between low-level runtime and high-level team APIs, a working cross-language distributed runtime, and a paper-backed orchestrator in Magentic-One. The killer issue is status: AutoGen is in maintenance mode, Microsoft directs new projects to [Microsoft Agent Framework](microsoft-agent-framework.md), and the library never reached 1.0. Worth reading the source for architectural ideas. Not worth starting new production work on.
