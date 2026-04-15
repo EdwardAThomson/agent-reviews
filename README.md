@@ -45,6 +45,7 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 | [CrewAI](reviews/frameworks/crewai.md) | Python | [crewAIInc/crewAI](https://github.com/crewAIInc/crewAI) | |
 | [AutoGen](reviews/frameworks/autogen.md) | Python + C# | [microsoft/autogen](https://github.com/microsoft/autogen) | Maintenance mode — see [MAF](reviews/frameworks/microsoft-agent-framework.md) |
 | [Microsoft Agent Framework](reviews/frameworks/microsoft-agent-framework.md) | Python + C# | [microsoft/agent-framework](https://github.com/microsoft/agent-framework) | |
+| [Pydantic AI](reviews/frameworks/pydantic-ai.md) | Python | [pydantic/pydantic-ai](https://github.com/pydantic/pydantic-ai) | |
 
 ## Comparisons
 
