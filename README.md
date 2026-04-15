@@ -18,6 +18,7 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 | [NullClaw](reviews/general-purpose/nullclaw.md) | Zig | [nullclaw/nullclaw](https://github.com/nullclaw/nullclaw) |
 | [NanoClaw](reviews/general-purpose/nanoclaw.md) | TypeScript | [qwibitai/nanoclaw](https://github.com/qwibitai/nanoclaw) |
 | [Nanobot](reviews/general-purpose/nanobot.md) | Python | [HKUDS/nanobot](https://github.com/HKUDS/nanobot) |
+| [Hermes Agent](reviews/general-purpose/hermes-agent.md) | Python | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) |
 
 ### Category B — Coding Agents
 
@@ -40,6 +41,9 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 | [memU](reviews/frameworks/memu.md) | Python | [NevaMind-AI/memU](https://github.com/NevaMind-AI/memU) |
 | [GBrain](reviews/frameworks/gbrain.md) | TypeScript | [garrytan/gbrain](https://github.com/garrytan/gbrain) |
 | [AutoGPT](reviews/frameworks/autogpt.md) | Python + TypeScript | [Significant-Gravitas/AutoGPT](https://github.com/Significant-Gravitas/AutoGPT) |
+| [LangGraph](reviews/frameworks/langgraph.md) | Python | [langchain-ai/langgraph](https://github.com/langchain-ai/langgraph) |
+| [CrewAI](reviews/frameworks/crewai.md) | Python | [crewAIInc/crewAI](https://github.com/crewAIInc/crewAI) |
+| [AutoGen](reviews/frameworks/autogen.md) | Python + C# | [microsoft/autogen](https://github.com/microsoft/autogen) |
 
 ## Comparisons
 
@@ -62,7 +66,7 @@ See [METHODOLOGY.md](METHODOLOGY.md) for the full review process, tier definitio
 
 ## Review date
 
-All repos were cloned and reviewed on **2026-04-10**. Each review notes the specific commit hash assessed. Findings reflect the state of the code at that point in time.
+Reviews were conducted between **2026-04-10 and 2026-04-15**. Each review notes the specific commit hash assessed. Findings reflect the state of the code at that point in time.
 
 ## Contributing
 
