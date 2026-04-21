@@ -55,7 +55,8 @@ Requires reading source code and documentation. Findings are factual ("the agent
 | **Orchestration** | Single-agent vs. multi-agent. Planning loops. Reflection/retry patterns. How the agent decides what to do next. |
 | **I/O interfaces** | CLI, API, chat channels, IDE integration. Protocol support (MCP, A2A, etc.). |
 | **Testing** | Unit, integration, e2e. Coverage metrics if available. Whether tests are meaningful or just smoke tests. |
-| **Security posture** | Sandboxing approach. Credential handling. Input validation. Privilege boundaries. |
+| **Security posture** | Sandboxing approach. Credential handling. Input validation. Privilege boundaries. Concerns the deployed agent's runtime. |
+| **Repo trust surfaces** | What fires or gets injected when a developer clones this repo and opens it in an AI coding agent. Agent config directories (`.claude/`, `.cursor/`, `.aider/`, `.continue/`, `.pi/`, etc.), hook declarations, MCP server auto-launch. Auto-loaded instruction files (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `SKILL.md`, slash-command definitions). Install/lifecycle surfaces (`package.json` pre/post/install, husky, devcontainer `postCreateCommand`, `.envrc`, git filter drivers). Distinct from **Security** above: this is the *reviewer's* machine, not the deployed runtime. |
 | **Deployment** | Docker, native binary, cloud, local-only. Ease of getting a working instance. |
 | **Documentation** | README quality. API docs. Tutorials/examples. Architecture docs. |
 
@@ -118,6 +119,9 @@ Each agent gets its own review file using this structure:
 [findings]
 
 ### Security
+[findings]
+
+### Repo Trust Surfaces
 [findings]
 
 ### Deployment
