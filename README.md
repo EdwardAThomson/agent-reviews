@@ -33,6 +33,7 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 | [Goose](reviews/coding/goose.md) | Rust | [block/goose](https://github.com/block/goose) | |
 | [SWE-agent](reviews/coding/swe-agent.md) | Python | [SWE-agent/SWE-agent](https://github.com/SWE-agent/SWE-agent) | Maintenance mode |
 | [Plandex](reviews/coding/plandex.md) | Go | [plandex-ai/plandex](https://github.com/plandex-ai/plandex) | Dormant since Oct 2025 |
+| [Pi](reviews/coding/pi.md) | TypeScript | [badlogic/pi-mono](https://github.com/badlogic/pi-mono) | |
 
 ### Category C — Agent Frameworks/Libraries
 
@@ -68,7 +69,7 @@ See [METHODOLOGY.md](METHODOLOGY.md) for the full review process, tier definitio
 
 ## Review date
 
-Reviews were conducted between **2026-04-10 and 2026-04-15**. Each review notes the specific commit hash assessed. Findings reflect the state of the code at that point in time.
+Reviews were conducted between **2026-04-10 and 2026-04-21**. Each review notes the specific commit hash assessed. Findings reflect the state of the code at that point in time.
 
 ## Contributing
 
