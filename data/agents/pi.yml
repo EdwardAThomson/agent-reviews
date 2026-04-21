@@ -1,0 +1,116 @@
+name: Pi
+slug: pi
+category: coding
+review: reviews/coding/pi.md
+status: active
+
+identity:
+  repo: https://github.com/badlogic/pi-mono
+  commit: c6cef7c8060a19dd6571fda8b4a9625dd51d771f
+  commit_date: 2026-04-21
+  review_date: 2026-04-21
+  language: [TypeScript]
+  license: MIT
+  loc: 175000
+  files: 607
+  dependencies:
+    direct: 60
+    notes: "coding-agent alone: 22 runtime deps"
+  commits: 3686
+  contributors: 204
+  stated_purpose: >
+    A minimal TypeScript terminal coding harness built for extension over feature
+    sprawl: 7-package monorepo, 17 LLM providers, four run modes
+    (interactive/print/RPC/SDK), plus a Slack bot and GPU-pod deployment tool.
+  notable_features:
+    - Four run modes (interactive, print/JSON, RPC, SDK)
+    - 17 LLM providers via pi-ai
+    - Faux provider for deterministic tool-use tests
+    - BashOperations plug point for swappable shell execution
+    - First-class extensions, skills, prompt templates, themes
+    - Slack-native companion (mom) with opt-in Docker sandbox
+
+capabilities:
+  architecture:
+    pattern: npm-workspaces monorepo, minimal core
+    summary: >
+      7 packages with clear layering: tui → ai → agent-core → coding-agent,
+      with apps (mom, pods, web-ui) on top. Agent loop is ~5 files.
+  llm_integration:
+    providers: 17
+    gateway: direct
+    provider_list: [anthropic, openai, openai-responses, azure-openai-responses, google-gemini, google-vertex, google-gemini-cli, bedrock, mistral, github-copilot, openai-codex-responses, faux]
+    auth: [api_key, oauth]
+    notes: Concurrent credential refresh via proper-lockfile; chmod-600 auth.json.
+  tool_calling:
+    pattern: TypeBox schemas + AJV validation
+    mcp_support: false
+    mcp_stance: opposed
+    builtin_tools: [bash, read, write, edit, edit-diff, find, grep, ls]
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: true
+    vector_store: false
+    notes: No vector memory; context via conversation + files + compaction.
+  orchestration:
+    pattern: single-agent
+    sub_agents: false
+    plan_mode: false
+    notes: Deliberately minimal; delegates to extensions/skills.
+  io: [cli, tui, print, rpc, sdk, slack, web]
+  testing:
+    framework: vitest
+    file_count: 186
+    faux_provider: true
+    coverage_signal: regression tests keyed by GitHub issue number
+  security:
+    default_bash_sandbox: false
+    approval_gate: extension-only
+    credential_storage: chmod-600 + proper-lockfile
+    notes: pi-mom ships opt-in Docker sandbox via --sandbox=docker:<name>.
+  repo_trust_surfaces:
+    agent_config_dirs: [.pi]
+    auto_loaded_instructions: [AGENTS.md]
+    lifecycle_scripts: [husky-prepare]
+    install_time_exec: false
+    risk_level: low
+  deployment:
+    install: "npm install -g @mariozechner/pi-coding-agent"
+    binary: true
+    docker: false
+    platforms: [linux, macos, windows]
+  docs: >
+    Per-package READMEs and CHANGELOGs; 24 topical docs under
+    packages/coding-agent/docs; AGENTS.md codifies rules for both humans and
+    agents working in the repo.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 4
+  maturity: production
+  innovation:
+    highlights:
+      - Faux provider for deterministic tool-use tests
+      - BashOperations pluggable interface for shell execution
+      - Anti-MCP stance — skills as CLI tools instead of MCP servers
+      - Slack-native mom with opt-in Docker sandbox
+      - Pi packages as npm-distributed extensions/skills/templates/themes
+  practical_utility:
+    rating: high
+    target_user: >
+      TypeScript-fluent, terminal-first developer who wants a harness
+      to extend rather than fight.
+  vendor_lock_in: none
+  red_flags:
+    - No default bash sandbox (user must install or write a BashOperations extension)
+    - One primary author despite 204 contributors (bus factor)
+    - 22 runtime deps in coding-agent alone
+    - Active encouragement to publish session transcripts to Hugging Face
+  summary: >
+    Best-argued counterexample to "more features = better coding agent."
+    Minimal core, 17-provider abstraction, 13 built-in tools, four run modes,
+    first-class extension system. Main cautions: no default sandbox, single-author
+    dependence, opinionated anti-MCP — won't suit everyone, but has no direct peer
+    for developers who want TypeScript-extensible terminal agents.

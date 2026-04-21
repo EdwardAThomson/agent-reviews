@@ -22,3 +22,11 @@ SWE-agent/
 .DS_Store
 *.swp
 *~
+
+# Transient comparison output during migration to data-driven generation.
+# Real comparisons/ becomes generated output once all agents are migrated.
+comparisons-generated/
+
+# Python
+__pycache__/
+*.pyc
