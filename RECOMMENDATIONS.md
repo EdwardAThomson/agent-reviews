@@ -1,6 +1,6 @@
 # Recommendations Guide
 
-**Based on:** Code-level review of 21 open-source AI agent projects, April 2026
+**Based on:** Code-level review of 22 open-source AI agent projects, April 2026
 **Methodology:** See [METHODOLOGY.md](METHODOLOGY.md) | **Full reviews:** See [reviews/](reviews/)
 
 This guide translates our technical findings into practical guidance for different audiences. Every recommendation is backed by evidence from the individual reviews — follow the links for details.
@@ -68,6 +68,7 @@ The categories below are sized by team, but the tools themselves don't enforce s
 | [Cline](reviews/coding/cline.md) | VS Code native, no infrastructure beyond the extension. Multi-provider. | Teams standardised on VS Code who want in-IDE assistance. |
 | [Gemini CLI](reviews/coding/gemini-cli.md) | Free tier means zero cost to trial. No API key needed (Google OAuth). | Budget-conscious teams willing to use Gemini models. |
 | [Goose](reviews/coding/goose.md) | Multi-provider, desktop app + CLI, MCP extensions, local inference option. | Teams wanting a versatile agent that goes beyond just coding (research, writing, automation). |
+| [Pi](reviews/coding/pi.md) | Minimal core (~5-file agent loop), TypeScript-extensible via skills/extensions/templates/themes, 17 providers, four run modes (interactive/print/RPC/SDK). Zero infrastructure. | Teams who'd rather extend a harness in TypeScript than configure MCP servers, and who value embeddability via SDK or RPC. |
 
 **For an internal AI assistant (chat, tasks, automation):**
 
@@ -75,6 +76,7 @@ The categories below are sized by team, but the tools themselves don't enforce s
 |--------|-----|----------|
 | [NanoClaw](reviews/general-purpose/nanoclaw.md) | Minimal (3 deps, 8.5k LOC), container-isolated, per-group security. Easy to audit. | Teams wanting a WhatsApp/Slack/Telegram AI assistant they fully control, with strong security guarantees. |
 | [Nanobot](reviews/general-purpose/nanobot.md) | 12 channels including WeChat, Feishu, DingTalk. 25+ providers. Clean Python codebase. | Teams operating in Asian markets or needing Chinese messaging platform support. |
+| [Pi `mom`](reviews/coding/pi.md) | Slack-native bot with self-managing tools (installs its own CLIs), optional Docker sandbox (`--sandbox=docker:<name>`), persistent workspace. | Slack-first teams who want an AI assistant that provisions its own tooling and can be isolated from the host via Docker. |
 
 **For building custom agents / agent infrastructure:**
 
@@ -95,6 +97,8 @@ The categories below are sized by team, but the tools themselves don't enforce s
 | Goal | Use | Why |
 |------|-----|-----|
 | Best all-round terminal coding | [Aider](reviews/coding/aider.md) | Most mature, repo map gives best context awareness, auto-commit + undo is a safety net |
+| Extend a terminal coding agent in TypeScript | [Pi](reviews/coding/pi.md) | Minimal core, first-class extensions/skills/templates, 17 providers, four run modes |
+| Embed a coding agent into your own app | [Pi](reviews/coding/pi.md) | Dedicated SDK mode + stdio RPC mode; openclaw uses it as an SDK |
 | Best in-IDE coding | [Cline](reviews/coding/cline.md) | 46 providers, checkpoint rollback, MCP extensibility |
 | Free coding with no API key | [Gemini CLI](reviews/coding/gemini-cli.md) | 60 req/min free with Google OAuth, 1M context window |
 | Local/offline coding | [Codex CLI](reviews/coding/codex-cli.md) | Ollama + LM Studio support, sandboxed execution |
@@ -138,7 +142,7 @@ The categories below are sized by team, but the tools themselves don't enforce s
 
 | Lock-in level | Agents |
 |---------------|--------|
-| None (multi-provider) | Cline (46), Goose (25+), NullClaw (95+), Nanobot (25+), Aider (litellm), OpenHands (litellm), Pydantic AI (33), CrewAI (litellm) |
+| None (multi-provider) | Cline (46), Goose (25+), NullClaw (95+), Nanobot (25+), Aider (litellm), OpenHands (litellm), Pydantic AI (33), CrewAI (litellm), Pi (17) |
 | Moderate (shaped by one vendor / ecosystem) | OpenClaw (Claude-shaped), AutoGPT (multi but OpenAI-centric), LangGraph (LangSmith observability + closed-source server runtime), MAF (Azure-adjacent integrations) |
 | High (single vendor) | NanoClaw (Claude-only), Codex CLI (OpenAI Responses API), Gemini CLI (Gemini-only) |
 
@@ -177,7 +181,7 @@ The categories below are sized by team, but the tools themselves don't enforce s
 | Risk | Highest Exposure | Mitigation |
 |------|-----------------|------------|
 | **Vendor lock-in** | NanoClaw, Codex CLI, Gemini CLI | Use multi-provider tools (Cline, Aider, OpenHands) or accept the trade-off for a superior single-vendor experience |
-| **Security (unsandboxed execution)** | Aider, CLIO | Always review before approving commands. Use in git repos where `git reset` provides a safety net |
+| **Security (unsandboxed execution)** | Aider, CLIO, Pi | Aider and CLIO prompt before each command; Pi has no default approval gate — supervise output or add approval via a `BashOperations` extension. Use in git repos where `git reset` provides a safety net. For Pi with `mom` on Slack, enable `--sandbox=docker:<name>` |
 | **Operational complexity** | AutoGPT (15+ services), OpenHands (Docker/K8s) | Start with local-first tools. Only adopt complex deployments when the value justifies the ops burden |
 | **Sustainability (bus factor)** | CLIO (1 human), GBrain (1 human, 5 days old), NanoClaw (small team) | Assess whether you could fork and maintain if the project stalls. Prefer projects with multiple active contributors |
 | **Maintenance mode / deprecation** | AutoGen (Microsoft directs to MAF), SWE-agent (entering maintenance), Plandex (dormant since Oct 2025) | Don't start new production projects on maintenance-mode code. Existing deployments get bug fixes but no new features. |
@@ -202,6 +206,7 @@ What do you need?
 │  │  ├─ Sandboxed, OpenAI ecosystem → Codex CLI
 │  │  ├─ Free, Google ecosystem → Gemini CLI
 │  │  ├─ Large projects, plan/branch workflow → Plandex (⚠️ dormant since Oct 2025)
+│  │  ├─ TypeScript-extensible, SDK-embeddable, minimal core → Pi
 │  │  └─ Zero dependencies, runs anywhere → CLIO
 │  ├─ In VS Code?
 │  │  └─ Cline (only serious option, and it's very good)
@@ -214,6 +219,7 @@ What do you need?
 │  ├─ Minimal, secure, Claude-based → NanoClaw
 │  ├─ Multi-channel, Asian messaging → Nanobot
 │  ├─ Maximum features, 20+ channels → OpenClaw
+│  ├─ Slack-native with optional Docker sandbox → Pi `mom`
 │  └─ Edge / embedded / constrained hardware → NullClaw
 │
 └─ Building agent infrastructure
@@ -235,6 +241,7 @@ What do you need?
 Trends and projects worth monitoring as the landscape evolves:
 
 - **MCP adoption** — becoming the standard for tool extensibility. Agents without MCP support will feel increasingly limited.
+- **CLI tools vs. MCP as the extension model** — Pi takes the opposite position to the MCP consolidation: CLI tools installed as "skills" replace MCP servers for most single-user workflows (see its [author's rationale](https://mariozechner.at/posts/2025-11-02-what-if-you-dont-need-mcp/)). Worth watching whether this counterposition stays niche or catches on as MCP's complexity cost becomes more visible.
 - **Sandbox convergence** — Codex, Gemini, and OpenHands all implement platform-native sandboxing differently. Expect consolidation around best practices.
 - **Memory standardisation** — memU, GBrain, and the various per-agent memory systems all solve the same problem differently. A winner or standard may emerge.
 - **Multi-agent protocols** — A2A (Google), ACP, and custom implementations are proliferating. Interoperability is the next frontier.
