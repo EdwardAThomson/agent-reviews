@@ -1,0 +1,118 @@
+name: Codex CLI
+slug: codex-cli
+category: coding
+review: reviews/coding/codex-cli.md
+status: active
+
+identity:
+  repo: https://github.com/openai/codex
+  commit: 8035cb03f1a5061d0342cb8fa3a10a18068ca683
+  commit_date: 2026-04-10
+  review_date: 2026-04-10
+  language: [Rust, TypeScript]
+  license: Apache-2.0
+  loc: 623000
+  files: 3520
+  dependencies:
+    direct: 194
+    notes: "194 external crates + 40 workspace deps"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    OpenAI's local-first coding agent — a 91-crate Rust monorepo with multi-platform
+    sandboxing, multi-model support, ratatui TUI, and an MITM network proxy.
+  notable_features:
+    - Multi-platform sandboxing (Seatbelt/macOS, Landlock+bubblewrap+seccomp/Linux, restricted tokens/Windows)
+    - MITM network proxy with per-host TLS policy and audit logging
+    - Two-phase memory extraction (gpt-5.4-mini + gpt-5.3-codex)
+    - Skills system with fingerprint-based caching
+    - arg0 multi-binary dispatch via symlinks
+    - Bazel + Cargo dual build, LLM toolchains, RBE
+    - WebRTC realtime voice (macOS-only)
+
+capabilities:
+  architecture:
+    pattern: 91-crate Rust workspace with core orchestration hub
+    summary: >
+      Binary entry cli dispatches subcommands (TUI, exec, review, login, mcp).
+      Core crate contains Codex, ThreadManager, McpManager, SkillsManager,
+      PluginsManager, tool router, compaction, memory, agent spawning.
+  llm_integration:
+    providers: null
+    gateway: direct
+    provider_list: [openai-responses, ollama, lm-studio]
+    auth: [chatgpt-oauth, api_key]
+    notes: Primary is OpenAI Responses API over SSE and WebSocket. Ollama/LM Studio work only because they implement Responses API. ModelProviderInfo supports configurable custom providers via config.toml.
+  tool_calling:
+    pattern: two-layer (tools crate for schemas + core/src/tools for handlers)
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [shell, apply-patch, list-dir, plan, request-user-input, js-repl, agent-spawn, agent-wait, view-image, tool-search]
+    notes: ToolRouter + ToolOrchestrator sequence approval, sandbox selection, attempt, retry with escalated sandbox. MCP server via rmcp over stdio.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: false
+    vector_store: false
+    notes: SQLite with schema versioning + migrations; rollout JSONL files; two-phase memory pipeline (Phase 1 extracts with gpt-5.4-mini low-effort, Phase 2 consolidates with gpt-5.3-codex medium-effort).
+  orchestration:
+    pattern: async channel session loop with multi-thread support
+    sub_agents: true
+    plan_mode: true
+    notes: ThreadManager manages concurrent CodexThread instances; multi-agents via spawn/wait/close/resume/send-input handlers; depth limited via agent_max_depth. Hooks on session_start, pre_tool_use, post_tool_use, user_prompt_submit, stop.
+  io: [tui, app-server, mcp-server, webrtc, exec, responses-proxy]
+  testing:
+    framework: cargo test + insta snapshots + wiremock
+    file_count: 436
+    faux_provider: false
+    coverage_signal: 273+ test files, 163 companion *_tests.rs, 20+ crates with dedicated test dirs, core_test_support/app_test_support/mcp_test_support libraries
+  security:
+    default_bash_sandbox: true
+    approval_gate: per-command sandbox selection + retry with escalated sandbox
+    credential_storage: ChatGPT OAuth or API key; cargo-deny for dep auditing
+    notes: >
+      Platform-native sandboxing (Seatbelt/Landlock+bubblewrap+seccomp/Windows);
+      EffectiveSandboxPermissions computed from intersected profiles; process-hardening
+      crate disables core dumps and ptrace; execpolicy with allow/deny rule parser.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "npm install -g @openai/codex"
+    binary: true
+    docker: false
+    platforms: [linux, macos, windows]
+    notes: npm wrapper resolves platform-specific binaries for 6 targets (linux-musl x86_64/aarch64, macOS x86_64/aarch64, Windows MSVC x86_64/aarch64). Release profile with LTO, strip, single codegen unit.
+  docs: >
+    24 markdown files in docs/ (getting-started, installation, auth,
+    configuration, exec policy, sandbox, skills, slash commands, TUI design,
+    JS REPL, contributing, CLA, licensing); automated changelog via git-cliff.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 3
+  maturity: beta
+  innovation:
+    highlights:
+      - Two-phase memory extraction with tiered-cost models
+      - MITM network proxy on rama HTTP framework for per-host TLS policy
+      - arg0 multi-binary dispatch via temporary symlinks
+      - Vendored bubblewrap with fallback and version-probing
+      - Multi-platform sandboxing with platform-native primitives
+  practical_utility:
+    rating: high
+    target_user: Power users who live in the terminal and need controlled local execution with strong sandboxing. Less suitable for casual ChatGPT users.
+  vendor_lock_in: moderate
+  red_flags:
+    - OpenAI lock-in deeper than advertised — WireApi enum has only Responses variant; Legacy Chat API removed; memory phases hardcode OpenAI model names
+    - 7961-line codex.rs god-file is a maintenance risk
+    - "#![allow(unsafe_op_in_unsafe_fn)] in Windows sandbox and empty Windows hardening function — acknowledged but unresolved"
+    - Vendored bubblewrap C code in Cargo.lock is unusual supply-chain surface for Rust
+  summary: >
+    A technically impressive, well-engineered Rust monorepo solving a real problem —
+    sandboxed, local-first AI coding assistance with serious security primitives.
+    High code quality, thoughtful architecture, strong tooling discipline. Main
+    concerns: session logic concentrated in a single 8k-line file, deeper-than-apparent
+    OpenAI coupling despite multi-provider branding, and 96-crate workspace size
+    challenging community contribution.

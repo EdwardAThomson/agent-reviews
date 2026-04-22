@@ -1,0 +1,121 @@
+name: Cline
+slug: cline
+category: coding
+review: reviews/coding/cline.md
+status: active
+
+identity:
+  repo: https://github.com/cline/cline
+  commit: a0faf7c6778fda100c10af5f8686d9dfa30b3d53
+  commit_date: 2026-04-10
+  review_date: 2026-04-10
+  language: [TypeScript]
+  license: Apache-2.0
+  loc: 90000
+  files: 400
+  dependencies:
+    direct: 96
+    notes: "34 dev deps; includes Puppeteer, better-sqlite3, AWS/Azure/GCP SDKs, 13 OpenTelemetry packages"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    The most comprehensive open-source VS Code coding agent — 46 LLM providers,
+    checkpoint system via shadow Git repos, MCP tool extensibility, and
+    human-in-the-loop approval at every step.
+  notable_features:
+    - 46 LLM providers (widest coverage of any reviewed agent)
+    - Checkpoint system via shadow Git repos (compare/restore workspace state)
+    - 26 built-in tools with MCP first-class integration
+    - Human-in-the-loop approval at every step (granular auto-approval settings)
+    - Plan and Act modes with separate model configs
+    - Subagent system, hook lifecycle, focus chains
+
+capabilities:
+  architecture:
+    pattern: VS Code extension with host-abstraction layer
+    summary: >
+      HostProvider singleton abstracts platform ops — same core runs in VS Code,
+      CLI (React Ink TUI), and external hosts via gRPC. Controller orchestrates
+      Task, McpHub, StateManager, AuthService. Webview is full React app with
+      own build pipeline.
+  llm_integration:
+    providers: 46
+    gateway: custom
+    provider_list: [anthropic, openrouter, openai, gemini, bedrock, vertex, ollama, lm-studio, mistral, deepseek, groq, cerebras, xai, together, sambanova, qwen, doubao, huggingface, litellm, moonshot, nebius, fireworks, sap-ai-core]
+    auth: [api_key, oauth]
+    notes: Format transformers per family (Anthropic/OpenAI/Gemini/Ollama/Mistral/O1); model-specific prompt variants via PromptRegistry + PromptBuilder + TemplateEngine.
+  tool_calling:
+    pattern: 26 dedicated handlers + MCP hub
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [execute_command, read_file, write_to_file, replace_in_file, apply_patch, search_files, list_files, browser_action, use_mcp_tool, web_fetch, web_search, use_subagents]
+    notes: McpHub supports stdio, SSE, StreamableHTTP, OAuth; hook system (TaskStart/Complete/Cancel/Resume, PreToolUse, UserPromptSubmit, PreCompact).
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: true
+    vector_store: false
+    notes: Dual-tracked conversation history (API + webview); shadow Git repos for workspace snapshots at each step; ContextManager + FileContextTracker + ModelContextTracker.
+  orchestration:
+    pattern: single-agent with optional subagents
+    sub_agents: true
+    plan_mode: true
+    notes: Task.initiateTaskLoop → recursivelyMakeClineRequests; Plan vs Act modes with separate model configs; loop detection, focus chains, deep planning slash commands.
+  io: [vscode-sidebar, cli, editor-menu, terminal-menu, scm-menu, jupyter-menu, acp]
+  testing:
+    framework: mocha + VS Code test CLI + Playwright e2e
+    file_count: 90
+    faux_provider: false
+    coverage_signal: c8/nyc coverage, snapshot testing across model families, Storybook for components
+  security:
+    default_bash_sandbox: false
+    approval_gate: human-in-the-loop by default (every change, every command)
+    credential_storage: VS Code SecretStorage + enterprise SSO
+    notes: >
+      Granular AutoApprovalSettings (workspace-internal vs external, safe vs all);
+      .clineignore for sensitive files; CommandPermissionController with globs,
+      redirect detection, subshell validation; Bugcrowd vuln disclosure program.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "VS Code Marketplace (saoudrizwan.claude-dev) or Open VSX"
+    binary: false
+    docker: false
+    platforms: [linux, macos, windows]
+    notes: Requires VS Code 1.84.0+; pre-release and nightly channels; standalone build for non-VS-Code; enterprise supports self-hosted/on-prem.
+  docs: >
+    80+ MDX files in docs/ (getting-started, core-workflows, features,
+    customization, MCP, CLI, enterprise, API reference); README in 7 languages;
+    .clinerules/general.md is exceptionally detailed internal developer guide.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 3
+  maturity: production
+  innovation:
+    highlights:
+      - Checkpoint system via shadow Git repos for workspace time-travel
+      - First-class MCP integration letting agents create their own tools
+      - Model-family prompt variants with template engine and component overrides
+      - Hook lifecycle for user-extensible automation
+      - Focus chains for structured planning
+      - 46 provider integrations with format-specific adapters (unmatched)
+  practical_utility:
+    rating: very high
+    target_user: Anyone from solo devs to enterprises wanting a full-featured, safe (human-in-the-loop), multi-provider coding agent inside VS Code.
+  vendor_lock_in: none
+  red_flags:
+    - 96 runtime dependencies (Puppeteer, better-sqlite3, AWS/Azure/GCP SDKs, 13 OpenTelemetry packages) impacting activation time and bundle size
+    - 3,400+ line Task god file containing the entire agent loop
+    - Proto-conversion silently defaults to Anthropic when mappings are missing
+    - PostHog telemetry may concern privacy-sensitive users
+    - Adding a provider touches 6-8 files — architecture approaching complexity ceiling
+  summary: >
+    The most comprehensive open-source autonomous coding agent, with unmatched
+    provider breadth (46), innovative checkpoint/MCP/hook systems, and production-grade
+    security via human-in-the-loop approval. Architecture has evolved impressively
+    into a multi-platform agent framework, though growth has created significant
+    complexity — particularly the monolithic Task class and coordination cost of
+    cross-cutting changes.

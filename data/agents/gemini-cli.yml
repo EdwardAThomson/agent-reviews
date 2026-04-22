@@ -1,0 +1,121 @@
+name: Gemini CLI
+slug: gemini-cli
+category: coding
+review: reviews/coding/gemini-cli.md
+status: active
+
+identity:
+  repo: https://github.com/google-gemini/gemini-cli
+  commit: 5fc8fea8d762d67d3bff14d00307138faff0bca5
+  commit_date: 2026-04-10
+  review_date: 2026-04-10
+  language: [TypeScript]
+  license: Apache-2.0
+  loc: 109800
+  files: 2611
+  dependencies:
+    direct: 120
+    notes: "50 cli + 70 core"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    Google's open-source terminal agent — React/Ink TUI, Gemini 3 models with 1M
+    context, Google Search grounding, A2A protocol, and a comprehensive policy
+    engine.
+  notable_features:
+    - Gemini 3 preview series (3-pro, 3-flash, 3.1-pro, 3.1-flash-lite) with 1M context
+    - Local Gemma classifier for model routing (complexity-aware flash-vs-pro)
+    - Google Search grounding + URL context tool
+    - Policy engine (TOML rules with priority-based allow/deny/ask)
+    - Platform-native sandboxing (bwrap / seatbelt / custom Windows C#)
+    - A2A (Agent-to-Agent) protocol with dedicated server package
+    - Memory/perf regression baselines committed as JSON
+
+capabilities:
+  architecture:
+    pattern: npm-workspaces monorepo, 7 packages
+    summary: >
+      Packages core (API orchestration), cli (React/Ink TUI), sdk (embedding),
+      a2a-server, devtools, test-utils, vscode-ide-companion. Data flows
+      GeminiChat → Turn (streaming generator) → Scheduler.
+  llm_integration:
+    providers: 1
+    gateway: direct
+    provider_list: [google-genai]
+    auth: [api_key, oauth, vertex-ai, cloud-shell-adc, gateway]
+    notes: Gemini-only. ContentGenerator interface abstracts auth modes. Models defined with inheritance-based config (extends chains). Token caching for API key and Vertex AI users.
+  tool_calling:
+    pattern: BaseDeclarativeTool with model-family-specific tool sets
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [ReadFile, WriteFile, Edit, Shell, Glob, Grep, RipGrep, Ls, WebSearch, WebFetch, Memory, WriteTodos, ActivateSkill, AskUser, Agent]
+    notes: ~20 tools total; Scheduler orchestrates parallel batch execution with policy checks, confirmation flows, hook evaluation. MCP supports stdio, SSE, StreamableHTTP with OAuth and Google credentials.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: false
+    vector_store: false
+    notes: Four-level hierarchical memory (global, extension, project, user-project) via GEMINI.md files; ChatRecordingService NDJSON with rewind; checkpointing on file-modifying tool calls.
+  orchestration:
+    pattern: event-driven Scheduler with state machine (scheduled → validating → executing → completed)
+    sub_agents: true
+    plan_mode: true
+    notes: Local subagents declared declaratively (codebase-investigator, generalist-agent, cli-help-agent, memory-manager-agent, browser); remote agents via A2A. ModelRouterService uses composite strategy (fallback, override, approval-mode, Gemma classifier, generic, numerical, default).
+  io: [tui, headless, vscode, acp, sea, docker]
+  testing:
+    framework: vitest with V8 coverage
+    file_count: null
+    faux_provider: false
+    coverage_signal: ~107 integration tests, ~30 behavior evals, memory/perf regression baselines with heap/RSS tracking, preflight pipeline (clean/install/build/lint/typecheck/full-suite)
+  security:
+    default_bash_sandbox: true
+    approval_gate: ApprovalMode enum (DEFAULT, YOLO, PLAN)
+    credential_storage: OAuth/API key via standard auth flows
+    notes: >
+      Folder trust (FolderTrustDiscoveryService scans .gemini/ before granting trust);
+      policy engine TOML rules with wildcards; platform-native sandboxing
+      (bubblewrap/seatbelt/Windows C#); safety subsystem with checker runners;
+      environment sanitization strips sensitive vars.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "npm install -g @google/gemini-cli (or npx zero-install)"
+    binary: true
+    docker: true
+    platforms: [linux, macos, windows]
+    notes: Homebrew, MacPorts, Conda documented; Docker image on node:20-slim; Node SEA for standalone binaries; weekly preview (Tuesdays), weekly stable, nightly cadence.
+  docs: >
+    Polished README with CI badges and release channel info; GEMINI.md at root;
+    extensive /docs/ with 22 CLI guides, 11 tool docs, hooks/extensions/core/
+    reference sections; ROADMAP.md; JSON schema for settings; CONTRIBUTING.md
+    and SECURITY.md.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 4
+  maturity: beta
+  innovation:
+    highlights:
+      - Gemma classifier for local complexity-aware model routing
+      - Platform-native sandboxing with OS-level integration (bwrap/seatbelt/Windows C#)
+      - FolderTrustDiscoveryService as supply-chain defense
+      - Memory/perf regression baselines as committed JSON
+      - A2A protocol support for inter-agent communication
+  practical_utility:
+    rating: high
+    target_user: Google-ecosystem developers wanting a free, well-integrated coding assistant with 1M-context models.
+  vendor_lock_in: high
+  red_flags:
+    - Complete Gemini vendor lock-in via @google/genai client — provider switch would require rewriting core abstractions
+    - Google discontinuation risk (mitigated by Apache-2.0 and open-source code)
+    - Scheduler LegacyHack type alias and ink overridden to a non-upstream fork (@jrichman/ink)
+    - Clearcut telemetry sends data to Google — users should understand this
+  summary: >
+    A technically impressive, well-engineered coding agent with genuinely novel
+    features (local Gemma model routing, platform-native sandboxing, memory/perf
+    regression testing) and production-grade infrastructure despite 0.x version.
+    Consistently high code quality. Hard tradeoff is complete Gemini vendor lock-in:
+    excellent if you're in the Google ecosystem, but not a general-purpose framework
+    and long-term viability depends on Google's continued investment.

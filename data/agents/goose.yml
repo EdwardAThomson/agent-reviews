@@ -1,0 +1,124 @@
+name: Goose
+slug: goose
+category: coding
+review: reviews/coding/goose.md
+status: active
+
+identity:
+  repo: https://github.com/block/goose
+  commit: 3f5277538d5f6df1a88faca5e77cecc0ee208ae1
+  commit_date: 2026-04-11
+  review_date: 2026-04-11
+  language: [Rust, TypeScript]
+  license: Apache-2.0
+  loc: 142800
+  files: 366
+  dependencies:
+    direct: 83
+    notes: "83 workspace + ~50 crate-specific; [patch.crates-io] pins to git revisions"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    The most ambitious open-source AI agent — Rust core, 25+ LLM providers,
+    MCP-first extension system (70+ extensions), multi-layer security pipeline,
+    local inference, desktop app, CLI, HTTP API, and Telegram gateway. From Block
+    (now AAIF/Linux Foundation).
+  notable_features:
+    - 25+ LLM providers including local inference (llama.cpp, Candle with Metal/CUDA)
+    - MCP-first extension architecture with 70+ extensions
+    - Multi-layer ToolInspectionManager (pattern + ML + LLM adversary + permissions + repetition)
+    - Four GooseMode variants (Auto, Approve, SmartApprove, Chat)
+    - Subagents first-class via Summon extension
+    - Recipes — declarative task config with parameters, extensions, success checks
+    - Telegram gateway for remote interaction
+
+capabilities:
+  architecture:
+    pattern: 9-crate Rust workspace plus Electron desktop
+    summary: >
+      Core (~90k lines) houses agent loop, providers, extensions, security, sessions.
+      Server is Axum-based HTTP with REST routes. Goose-cli, goose-server, goose-mcp,
+      goose-acp, goose-sdk, goose-test, goose-test-support as supporting crates.
+  llm_integration:
+    providers: 25
+    gateway: custom
+    provider_list: [anthropic, openai, google, azure, bedrock, vertex, ollama, openrouter, databricks, github-copilot, litellm, snowflake, venice, xai, nanogpt, tetrate, sagemaker-tgi, claude-acp, copilot-acp, codex-acp, pi-acp, amp-acp]
+    auth: [api_key, oauth, keyring]
+    notes: Provider trait with streaming; canonical model registry; minijinja templates for prompts; local inference via llama.cpp and Candle with Metal/CUDA acceleration.
+  tool_calling:
+    pattern: layered platform-extensions + external MCP extensions with inspection pipeline
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [Developer, Analyze, Todo, Apps, ChatRecall, Summon, Orchestrator, Skills, Summarize, CodeExecution, ExtensionManager, TOM]
+    notes: In-process platform extensions plus external MCP extensions (stdio or streamable HTTP). Tool shim allows non-tool-capable models to emit JSON calls. ExtensionManager handles lifecycle, malware checks, secret resolution from keyring.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: true
+    vector_store: false
+    notes: SQLite via sqlx (schema v10); 7 session types (User, Scheduled, SubAgent, Hidden, Terminal, Gateway, ACP) with LRU-cached agents. Auto-compaction at 80% context. ChatRecall searches past sessions. Separate Memory MCP server for key-value data.
+  orchestration:
+    pattern: turn-based agent loop with inspection pipeline and parallel tool execution
+    sub_agents: true
+    plan_mode: false
+    notes: ~2470-line agent loop with max 1000 turns. Summon delegates to fresh agent instances. Cron-based scheduler for recurring tasks. MOIM system injects custom context per turn. Recipes provide declarative task config.
+  io: [cli, desktop-electron, http-api, sse, mcp-proxy, telegram-gateway, acp, dictation]
+  testing:
+    framework: cargo test + wiremock + mockall + insta + serial_test
+    file_count: 147
+    faux_provider: false
+    coverage_signal: integration tests for agent/compaction/MCP/adversary/scheduler/provider, ACP protocol tests, TLS tests, MCP playback/record in goose-test-support, evals/open-model-gym for model evaluation
+  security:
+    default_bash_sandbox: false
+    approval_gate: configurable per GooseMode (Auto, Approve, SmartApprove, Chat)
+    credential_storage: keyring integration for secrets
+    notes: >
+      Multi-layer ToolInspectionManager — SecurityInspector (30+ threat patterns),
+      EgressInspector (network monitoring), AdversaryInspector (LLM-based review),
+      PermissionInspector (3-tier), RepetitionInspector. Extension malware checking.
+      SECURITY.md candidly acknowledges prompt injection risks.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "shell script installer (macOS/Linux/Windows with arch detection) or npm/brew"
+    binary: true
+    docker: true
+    platforms: [linux, macos, windows]
+    notes: Nix flake; Docker multi-stage (Rust 1.82, Debian bookworm-slim); Electron desktop with RPM/DEB/DMG/Windows installer and macOS code signing; Flatpak aware; self-update mechanism for CLI.
+  docs: >
+    External Docusaurus site (goose-docs.ai) with guides, tutorials, architecture,
+    MCP guides, troubleshooting. In-repo: CONTRIBUTING.md, GOVERNANCE.md,
+    MAINTAINERS.md, SECURITY.md, RELEASE.md, CUSTOM_DISTROS.md. OpenAPI schema
+    generation in server crate.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 3.5
+  maturity: production
+  innovation:
+    highlights:
+      - MCP-first extension architecture (70+ extensions via open protocol)
+      - Most sophisticated multi-layer security pipeline of any reviewed agent
+      - Tool shim for non-tool-capable models
+      - Integrated local inference (llama.cpp + Candle with Metal/CUDA)
+      - ACP for inter-agent communication
+      - Recipes/skills for declarative task config
+  practical_utility:
+    rating: very high
+    target_user: Teams or individuals wanting an extensible, provider-agnostic AI agent with production-grade sessions, security, and local inference.
+  vendor_lock_in: none
+  red_flags:
+    - Security inspection disabled by default — SECURITY_PROMPT_ENABLED=false, adversary inspector only runs if adversary.md exists
+    - Dependency pinning to git revisions (opentelemetry, sacp) — fragile, depends on external git availability
+    - PostHog telemetry enabled by default; users should verify opt-out
+    - Several files exceed 2000 lines (agent.rs 2470, extension_manager.rs 2357, session_manager.rs 2163, goose-acp/server.rs 3265)
+  summary: >
+    The most ambitious open-source AI agent framework available, combining a
+    performant Rust core with broad provider support, standards-based extensions
+    (MCP), sophisticated multi-layer security, local inference, and first-class
+    multi-platform deployment. Complexity concentration in large files and a heavy
+    dependency footprint are the main weaknesses, offset by clear architectural
+    boundaries and strong trait abstractions. Currently the strongest open-source
+    option for teams seeking an extensible, provider-agnostic AI agent.

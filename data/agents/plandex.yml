@@ -1,0 +1,115 @@
+name: Plandex
+slug: plandex
+category: coding
+review: reviews/coding/plandex.md
+status: dormant
+
+identity:
+  repo: https://github.com/plandex-ai/plandex
+  commit: e2d772072efadbe41d2946d97d79be55532dbab5
+  commit_date: 2025-10-03
+  review_date: 2026-04-10
+  language: [Go, Python]
+  license: MIT
+  loc: 50000
+  files: 250
+  dependencies:
+    direct: null
+    notes: "gorilla/mux, sqlx, go-tree-sitter, go-openai, bubbletea, cobra, LiteLLM (Python)"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    A Go-based AI coding agent for large projects with a novel plan/branch/sandbox
+    workflow, 9 specialized model roles, and cumulative diff review. Cloud service
+    wound down October 2025; self-hosted only.
+  notable_features:
+    - 9-role model pack system (planner, coder, architect, builder, ...)
+    - Plan/branch/rewind workflow with git-per-plan version control
+    - Cumulative diff review sandbox — changes kept separate until applied
+    - Staged planning-then-implementation orchestration
+    - Five autonomy presets (full/semi/plus/basic/none/custom)
+    - Custom XML streaming protocol for LLM output parsing
+
+capabilities:
+  architecture:
+    pattern: client-server split with LiteLLM Python sidecar
+    summary: >
+      CLI (Go) talks HTTP to server (Go) which runs alongside a LiteLLM Python
+      proxy for multi-provider routing. PostgreSQL persistence plus per-plan git
+      repos on server filesystem.
+  llm_integration:
+    providers: 12
+    gateway: litellm
+    provider_list: [openai, anthropic, google-ai-studio, google-vertex, azure, bedrock, deepseek, perplexity, ollama, openrouter]
+    auth: [api_key]
+    notes: Sophisticated model pack system — 16+ curated presets (daily-driver, reasoning, strong, cheap, oss) assigning models to 9 distinct roles.
+  tool_calling:
+    pattern: custom XML streaming protocol (not standard LLM tool calling)
+    mcp_support: false
+    mcp_stance: n/a
+    builtin_tools: [plan, tell, chat, apply, reject, rewind, branches, diffs, build]
+    notes: LLM outputs PlandexBlock tags parsed by tell_stream_processor.go; file edits use tree-sitter + generic text + fast-apply fallback.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: true
+    vector_store: false
+    notes: Per-plan git repos with full version history; PostgreSQL for metadata; tree-sitter project map; auto-summarization at token threshold.
+  orchestration:
+    pattern: two-stage (Planning + Implementation) with role specialization
+    sub_agents: true
+    plan_mode: true
+    notes: Architect analyzes codebase map, planner breaks into subtasks, coder implements. Builds queued per-file and executed in parallel.
+  io: [cli, repl, tui]
+  testing:
+    framework: go test
+    file_count: 6
+    faux_provider: false
+    coverage_signal: near-zero — only parsing/text tests, no integration or e2e, no CI visible
+  security:
+    default_bash_sandbox: false
+    approval_gate: optional per autonomy preset
+    credential_storage: environment variables (no vault)
+    notes: Linux-only cgroup isolation via systemd-run scope; _apply.sh lets LLM write arbitrary shell; no namespace/seccomp/container isolation.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "one-line curl install (CLI) + Docker compose (server)"
+    binary: true
+    docker: true
+    platforms: [linux, macos]
+    notes: Server requires PostgreSQL with golang-migrate; Windows via WSL only; port 8099.
+  docs: >
+    README with workflow diagram and cloud-shutdown notice; external docs at
+    docs.plandex.ai; inline docs sparse; prompt templates in model/prompts/
+    serve as implicit behavioral docs.
+
+opinions:
+  ratings:
+    code_quality: 3
+    maintainability: 2
+  maturity: dormant
+  innovation:
+    highlights:
+      - Cumulative diff review sandbox pattern
+      - 9-role multi-model system with 16+ curated packs
+      - Plan/branch/rewind version-control-for-AI-interactions
+      - Staged planning-then-implementation architecture
+  practical_utility:
+    rating: moderate
+    target_user: Self-hosted users with Docker+PostgreSQL capacity wanting a capable coding agent with strong context management for large projects — but prepared for potential abandonment.
+  vendor_lock_in: none
+  red_flags:
+    - Cloud service shut down October 2025 — strongest signal of reduced investment
+    - Near-zero test coverage (6 test files across ~250 source files)
+    - Single maintainer (bus factor of 1)
+    - Arbitrary code execution via LLM-authored _apply.sh with only optional cgroup isolation
+    - Python subprocess dependency complicates debugging and deployment
+    - 6+ months inactive — no commits since October 2025
+  summary: >
+    An architecturally innovative coding agent with genuinely novel plan/branch/sandbox
+    workflow and the most sophisticated multi-model role system reviewed. The
+    cumulative diff sandbox addresses a real pain point. However, October 2025 cloud
+    shutdown, minimal test coverage, and 6+ months of inactivity make it a risky
+    choice for new adoption. Valuable as an architectural reference.
