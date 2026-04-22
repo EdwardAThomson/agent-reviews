@@ -1,0 +1,121 @@
+name: AutoGen
+slug: autogen
+category: frameworks
+review: reviews/frameworks/autogen.md
+status: maintenance
+
+identity:
+  repo: https://github.com/microsoft/autogen
+  commit: 027ecf0a379bcc1d09956d46d12d44a3ad9cee14
+  commit_date: 2026-04-06
+  review_date: 2026-04-10
+  language: [Python, C#]
+  license: MIT
+  loc: 158000
+  files: 1038
+  dependencies:
+    direct: 6
+    notes: "6 core (pydantic, protobuf, pillow, opentelemetry-api, typing-extensions, jsonref)"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    Microsoft's event-driven multi-agent framework — actor-model runtime with
+    pub/sub topics, layered Python + .NET implementations, gRPC distributed
+    runtime, Magentic-One orchestration, and visual Studio builder. Now in
+    maintenance mode; Microsoft directs new users to the Agent Framework successor.
+  notable_features:
+    - Actor-model runtime with CloudEvents-style pub/sub topics
+    - Parallel Python + .NET implementations with shared proto gRPC contracts
+    - Magentic-One orchestrator (arXiv:2411.04468) with progress ledger and stall detection
+    - Five team patterns (RoundRobin, Selector, Swarm, Magentic-One, DiGraph)
+    - SocietyOfMindAgent wraps internal teams as single agents to outer context
+    - AutoGen Studio visual agent builder (not production-ready)
+
+capabilities:
+  architecture:
+    pattern: monorepo of three-tier packages with actor-model runtime
+    summary: >
+      autogen-core (foundational runtime), autogen-agentchat (team APIs),
+      autogen-ext (providers, tools, executors). Parallel .NET under dotnet/
+      with 16 packages. Proto definitions at protos/ define cross-language
+      gRPC contracts.
+  llm_integration:
+    providers: null
+    gateway: custom
+    provider_list: [openai, azure-openai, azure-ai-inference, anthropic, ollama, llamacpp, semantic-kernel, replay]
+    auth: [api_key]
+    notes: Protocol-based ChatCompletionClient. Each provider is a first-class adapter (no LiteLLM fallback). ModelFamily enumerates supported models. Tool binding on client; structured output via Pydantic response_format.
+  tool_calling:
+    pattern: Tool protocol with Workbench collections
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [FunctionTool, Workbench, McpWorkbench, LangChain-adapter, GraphRAG, SemanticKernel]
+    notes: FunctionTool wraps Python functions with auto-schema from type hints. McpWorkbench supports stdio/HTTP/SSE/WebSocket with MCPHost and MCPSession. Code execution delegated to pluggable CodeExecutor implementations.
+  memory:
+    session_persistence: true
+    compaction: false
+    branching: false
+    vector_store: true
+    notes: Memory abstract base with update_context/add/delete/query. ListMemory built-in. External — Mem0 (with Neo4j variant), ChromaDB. State via BaseAgent.save_state/load_state (JSON dicts). No built-in checkpointer — state persistence is user responsibility.
+  orchestration:
+    pattern: actor-model async message passing with typed subscriptions
+    sub_agents: true
+    plan_mode: true
+    notes: SingleThreadedAgentRuntime with internal queue, subscription manager, intervention hooks. Topics follow CloudEvents spec. RoutedAgent decorators (@message_handler, @event, @rpc) dispatch by type hints. SocietyOfMindAgent wraps teams recursively.
+  io: [python-api, autogen-studio, magentic-one-cli, grpc-distributed, dotnet-api]
+  testing:
+    framework: pytest + pytest-asyncio
+    file_count: 121
+    faux_provider: true
+    coverage_signal: ~43600 LOC test code (39% test-to-source ratio Python, 32% .NET); 12 CI workflows covering ruff/mypy/CodeQL/integration/cross-language .NET.
+  security:
+    default_bash_sandbox: false
+    approval_gate: CodeExecutorAgent with approval callbacks
+    credential_storage: providers consume env vars; no credential management subsystem
+    notes: No built-in sandboxing at framework level. Code execution via pluggable CodeExecutor (LocalCommandLine unsafe; Docker, ACI, Jupyter available). OpenTelemetry structured logging. AutoGen Studio explicitly not production-ready.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "pip install autogen-agentchat autogen-ext[openai]"
+    binary: false
+    docker: false
+    platforms: [linux, macos, windows]
+    notes: No canonical Dockerfile for production agent deployment; pattern is "embed into your own service". Distributed via gRPC runtime with proto contract. .NET packages on NuGet with Azure DevOps nightly feed.
+  docs: >
+    External docs at microsoft.github.io/autogen with versioned documentation
+    (v0.2 through v0.7.5). DocFX API reference for Python and .NET. 18 Python
+    samples + 6 .NET samples. Migration guide for v0.2 → v0.4+. README
+    prominently displays maintenance mode banner.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 3.5
+  maturity: maintenance
+  innovation:
+    highlights:
+      - Actor model with CloudEvents-style pub/sub — most principled messaging design among agent frameworks
+      - Cross-language (.NET + Python) with shared proto contracts — unique in this space
+      - Magentic-One orchestrator with progress ledger and stall detection
+      - gRPC distributed runtime for multi-machine agent coordination
+      - SocietyOfMindAgent recursive team-as-agent abstraction
+  practical_utility:
+    rating: low
+    target_user: Teams with existing AutoGen deployments (community support, bug fixes). Microsoft recommends Agent Framework for new projects.
+  vendor_lock_in: moderate
+  red_flags:
+    - Maintenance mode explicitly — Microsoft directs new users to Agent Framework successor
+    - Never reached 1.0 — 0.7.5 with maintenance banner, stopped before commitment to stability
+    - AutoGen Studio explicitly not production-ready (no auth, no jailbreak protection, breaking changes)
+    - License split (MIT code + CC BY 4.0 content) typical Microsoft OSS pattern
+    - Parallel .NET implementation diverging — AutoGen.* vs Microsoft.AutoGen.* split won't be cleaned up
+    - Microsoft's ecosystem direction pulls users toward Agent Framework migration
+  summary: >
+    A genuinely well-engineered multi-agent framework with the cleanest actor-model
+    architecture in the space, a thoughtful separation between low-level runtime and
+    high-level team APIs, a working cross-language distributed runtime, and a
+    paper-backed orchestrator in Magentic-One. The killer issue is status —
+    AutoGen is in maintenance mode, Microsoft directs new projects to Microsoft
+    Agent Framework, and the library never reached 1.0. Worth reading the source
+    for architectural ideas; not worth starting new production work on.

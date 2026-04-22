@@ -1,0 +1,126 @@
+name: CrewAI
+slug: crewai
+category: frameworks
+review: reviews/frameworks/crewai.md
+status: active
+
+identity:
+  repo: https://github.com/crewAIInc/crewAI
+  commit: 5b6f89fe64c9ba206417079d8c1ea5891db45f8b
+  commit_date: 2026-04-15
+  review_date: 2026-04-15
+  language: [Python]
+  license: MIT
+  loc: 141200
+  files: 790
+  dependencies:
+    direct: 17
+    notes: "pydantic, openai, instructor, chromadb, lancedb, opentelemetry, click, textual, mcp + many LLM provider extras"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    The role-playing multi-agent framework — Python-first with no LangChain
+    dependency, 141k LOC monorepo, 75 bundled tools, unified memory with
+    LanceDB, event-driven telemetry, dual Crew/Flow abstractions, and a
+    commercial platform (CrewAI AMP) layered on MIT core.
+  notable_features:
+    - Role/goal/backstory agent pattern with hire-like mental model
+    - Crews (autonomous collaboration) + Flows (event-driven precise control) duality
+    - 75 pre-built tools spanning web search, scraping, DBs, cloud, automation
+    - Unified memory with LLM-inferred metadata (scope/category/importance)
+    - Event-driven telemetry with 20+ typed event classes
+    - Commercial CrewAI AMP platform for deployment
+
+capabilities:
+  architecture:
+    pattern: monorepo with 4 libs, Agent/Task/Crew/Flow primitives
+    summary: >
+      crewai (core), crewai-tools (75 tools), crewai-files (multimodal),
+      devtools (release automation). Primary abstractions — Agent (1822 LOC)
+      with role/goal/backstory, Task (1353 LOC), Crew (2276 LOC) orchestrating
+      sequential or hierarchical, Flow (3458 LOC) as event-driven state machine.
+  llm_integration:
+    providers: 100
+    gateway: litellm
+    provider_list: [openai, anthropic, azure, bedrock, gemini, openai-compatible]
+    auth: [api_key]
+    notes: LLM class (2519 LOC) wraps provider calls. LiteLLM optional dep provides unified access to 100+ models. Native provider adapters. LLM_CONTEXT_WINDOW_SIZES for auto-management. Supports streaming, hooks, function calling, native structured outputs. Separate function_calling_llm per-agent for cheaper tool-dispatch model.
+  tool_calling:
+    pattern: BaseTool with auto-registry via __init_subclass__
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [web-search, web-scraping, file-search, databases, cloud, automation, specialized]
+    notes: 75 pre-built tools. Tools define name/description/args_schema/env_vars. CrewStructuredTool wraps plain functions. MCP via MCPServerAdapter and MCPNativeTool. Delegation tools (DelegateWork, AskQuestion) for agent-to-agent.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: true
+    vector_store: true
+    notes: Unified memory — single system rather than short/long/entity tiers. LLM infers scope/category/importance on save. Retrieval composite scoring (30% recency with 30-day half-life, 50% semantic, 20% importance). RecallFlow does adaptive depth exploration. Default LanceDB backend. Separate Knowledge system for RAG. Flows have SQLite-backed state persistence.
+  orchestration:
+    pattern: two models — Crews (sequential/hierarchical) + Flows (event-driven state machine)
+    sub_agents: true
+    plan_mode: true
+    notes: Crews execute Process.sequential or Process.hierarchical. Flows decorated with @start/@listen/@router wired into runtime. Flows compose with Crews. Planning mode for pre-execution task decomposition. A2A protocol via optional a2a-sdk.
+  io: [cli, python-api, textual-tui, multimodal-files]
+  testing:
+    framework: pytest + pytest-xdist + pytest-asyncio + VCR.py cassettes
+    file_count: 225
+    faux_provider: false
+    coverage_signal: 28% test-to-source ratio; 15+ cassette directories for deterministic HTTP replay; 14 CI workflows (tests, ruff, mypy strict, CodeQL, Bandit, vulnerability scanning, nightly, PR checks, docs link checking, test duration tracking).
+  security:
+    default_bash_sandbox: false
+    approval_gate: guardrails at task level with auto-retry on failure
+    credential_storage: env-based; enterprise tier adds SSO via AMP
+    notes: >
+      Built-in guardrails with automatic retry up to guardrail_max_retries.
+      Agent fingerprinting for identity anchoring. Pre-deployment validation.
+      Enterprise tier adds PII masking, hallucination guardrails, RBAC, SSO
+      via AMP platform. No tool sandboxing — code execution and shell tools
+      run in-process.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "pip install crewai (uv recommended)"
+    binary: false
+    docker: false
+    platforms: [linux, macos, windows]
+    notes: OSS deployment is library-as-you-like — no Dockerfile, no HTTP server code. Deployment-as-a-service via `crewai deploy` to CrewAI AMP commercial platform. Free tier for AMP Control Plane, paid enterprise for on-premise/SSO/RBAC/marketplace.
+  docs: >
+    248 documentation files in docs/, multilingual (English, Portuguese-BR,
+    Korean, Arabic). Covers core concepts, guides (crafting agents,
+    customizing prompts, fingerprinting, LangGraph migration), API reference,
+    real-world examples. Separate enterprise docs. Professional Mintlify
+    presentation. README pitches Crews vs Flows duality.
+
+opinions:
+  ratings:
+    code_quality: 3.5
+    maintainability: 3
+  maturity: production
+  innovation:
+    highlights:
+      - Role/goal/backstory agent pattern (popularized this approach)
+      - Unified memory with LLM-inferred metadata rather than forcing short/long/entity buckets
+      - Crews + Flows duality (autonomous collaboration vs event-driven precise control)
+      - Guardrails with automatic retry budget at task level
+      - Composite memory scoring with tunable weights (recency/semantic/importance)
+  practical_utility:
+    rating: high
+    target_user: Teams that want to build multi-agent applications without thinking hard about graph semantics — intuitive role/goal/backstory mental model.
+  vendor_lock_in: none
+  red_flags:
+    - Telemetry enabled by default — three opt-out env vars exist but many users won't realize outbound OTLP requests happen
+    - CrewAI AMP gravity — deployment, observability, enterprise features all flow to commercial platform
+    - '"5.76x faster than LangGraph" README benchmark claim is marketing artifact'
+    - Large core files (flow.py 3458, llm.py 2519, crew.py 2276, agent/core.py 1822)
+    - No built-in sandboxing — tool execution runs in-process
+  summary: >
+    The most accessible multi-agent framework in Python. Role/goal/backstory pattern
+    and Crews/Flows duality give teams an intuitive mental model without sacrificing
+    production features. MIT core is complete enough to build real applications, and
+    commercial AMP platform provides a credible deployment path. Main tradeoffs —
+    "independent from LangChain" positioning comes at cost of reinventing infrastructure
+    LangGraph gets right (graph semantics, checkpointing, time-travel), and
+    architectural direction is trending toward feature accretion.

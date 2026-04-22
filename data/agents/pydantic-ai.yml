@@ -1,0 +1,125 @@
+name: Pydantic AI
+slug: pydantic-ai
+category: frameworks
+review: reviews/frameworks/pydantic-ai.md
+status: active
+
+identity:
+  repo: https://github.com/pydantic/pydantic-ai
+  commit: 7f57f5d057437c9b60ef1f8b853e02961b2c80a0
+  commit_date: 2026-04-14
+  review_date: 2026-04-14
+  language: [Python]
+  license: MIT
+  loc: 253000
+  files: 509
+  dependencies:
+    direct: 6
+    notes: "slim core — pydantic>=2.12, httpx, pydantic-graph, opentelemetry, genai-prices, griffe; 37+ optional groups for providers/tools/integrations"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    GenAI agent framework, the Pydantic way — production-stable type-safe Python
+    framework from the Pydantic team, with generic Agent[DepsT, OutputT]
+    dependency injection, 33 model providers, first-class MCP/A2A/AG-UI protocols,
+    durable execution via Temporal/DBOS/Prefect, Pydantic Evals, and Logfire
+    instrumentation.
+  notable_features:
+    - Generic Agent[DepsT, OutputT] types caught at type-check time
+    - 33 model providers + 11 primary model implementations
+    - First-class MCP (stdio, HTTP, SSE, StreamableHTTP) + A2A + AG-UI + Vercel AI SDK
+    - Durable execution via Temporal, DBOS, Prefect integrations
+    - Pydantic Evals framework ships alongside (typed Case/Evaluator)
+    - Real API recordings over mocks for tests (65% test-to-code ratio)
+    - RunContext[DepsT] dependency injection without globals
+
+capabilities:
+  architecture:
+    pattern: workspace monorepo with 5 packages, type-safe generics throughout
+    summary: >
+      pydantic-ai (meta), pydantic-ai-slim (core with per-provider optional deps),
+      pydantic-graph (standalone state-machine library), pydantic-evals,
+      clai (CLI). Agent class generic in AgentDepsT and OutputDataT. Agent graph
+      is state machine with UserPromptNode, ModelRequestNode, CallToolsNode.
+  llm_integration:
+    providers: 33
+    gateway: custom
+    provider_list: [openai, anthropic, google, gemini, bedrock, xai, mistral, groq, openrouter, huggingface, cohere, azure, alibaba, ovhcloud, nebius, sambanova, deepseek, grok, cerebras, together, fireworks, heroku, github, vercel, moonshotai, sentence-transformers, voyageai, litellm, outlines]
+    auth: [api_key, oauth, azure-identity, gcp-credentials]
+    notes: 33 provider modules routing to 11 primary model implementations. ModelProfile declares per-model capabilities. JsonSchemaTransformer adapts schemas to provider quirks. Streaming via StreamedResponse with delta events.
+  tool_calling:
+    pattern: "@agent.tool with full type inference + 17-toolset architecture"
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [WebSearchTool, WebFetchTool, CodeExecutionTool, FileSearchTool, ImageGenerationTool, MemoryTool, MCPServerTool]
+    notes: Tool functions take RunContext[DepsT] as first param — framework validates tool deps match agent deps at type-check time. Docstrings become tool descriptions via Griffe. Tool retries on Pydantic validation failure. 17 toolset implementations. MCP four transports. Tool approval via DeferredToolRequests/DeferredToolResults.
+  memory:
+    session_persistence: false
+    compaction: false
+    branching: false
+    vector_store: false
+    notes: No built-in persistent memory — users pass message history back as input. HistoryProcessor allows custom compaction. MemoryTool provides per-agent memory if enabled. For durable state, the durable_exec/ module integrates Temporal, DBOS, Prefect — full workflow orchestrators rather than checkpointers.
+  orchestration:
+    pattern: single-agent-first with pydantic-graph for complex flows
+    sub_agents: false
+    plan_mode: false
+    notes: No built-in group chat or team orchestration. Complex flows via pydantic-graph (separate package) — type-safe state machine where BaseNode subclasses declare next nodes via return type hints. A2A via fasta2a converts agent into FastA2A Starlette app. Parallel tool execution within turn. EndStrategy controls early vs exhaustive tool completion.
+  io: [library, clai-cli, ag-ui-starlette, vercel-ai-sdk, declarative-yaml]
+  testing:
+    framework: pytest + pytest-recording + inline-snapshot + pytest-examples
+    file_count: 151
+    faux_provider: false
+    coverage_signal: ~166k LOC test code (65% test-to-code ratio, highest in framework review set). VCR cassettes with real API responses recorded and replayed. Largest tests — test_agent.py (9611), test_capabilities.py (9081), test_vercel_ai.py (6988). "100% test coverage" goal per AGENTS.md.
+  security:
+    default_bash_sandbox: false
+    approval_gate: ApprovalRequiredToolset with DeferredToolRequests/Results
+    credential_storage: provider SDKs (Azure identity, GCP credentials, etc.)
+    notes: No built-in sandboxing — CodeExecutionTool runs in-process unless user provides isolation. Pydantic validation at all boundaries. UsageLimits enforces request/token budgets per run. capture_run_messages() provides audit trails. Logfire creates structured traces.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "pip install pydantic-ai (meta) or pydantic-ai-slim[provider,tool,integration]"
+    binary: false
+    docker: false
+    platforms: [linux, macos, windows]
+    notes: Library distribution via PyPI with granular optional deps. No Dockerfile, no server runtime. Durable deployment via Temporal workflow, DBOS step, or Prefect flow. HTTP via A2A FastA2A Starlette app or AG-UI/Vercel AI adapters. Serverless works naturally.
+  docs: >
+    Hosted at ai.pydantic.dev (Mintlify). In-repo — README, AGENTS.md, CLAUDE.md,
+    CONTRIBUTING.md at root; per-package READMEs; extensive example collection
+    (weather agent, SQL generation, RAG, Slack lead qualifier, streaming,
+    roulette wheel, flight booking, data analyst, bank support, chat app).
+    AGENTS.md documents "strong primitives over batteries", backward
+    compatibility policy, 100% coverage goal.
+
+opinions:
+  ratings:
+    code_quality: 4.5
+    maintainability: 4.5
+  maturity: production
+  innovation:
+    highlights:
+      - Generic typing of agents — Agent[DepsT, OutputT] catches dependency mismatches at type-check time (unique)
+      - RunContext[DepsT] dependency injection gives tools typed access to shared state without globals
+      - Deferring durable execution to real orchestrators (Temporal/DBOS/Prefect) rather than reinventing a checkpointer
+      - Pydantic Evals as first-class concern with typed Case[Input, Output] and composable Evaluator
+      - Real API recordings over mocks — quality-forcing function
+      - Builtin tools with provider-adaptive implementations (DuckDuckGo/Tavily/Exa)
+  practical_utility:
+    rating: high
+    target_user: Python teams who actually care about type safety — mypy/pyright strict users. Teams already using Pydantic (FastAPI, data validation). Teams needing evaluation infrastructure or durable execution.
+  vendor_lock_in: none
+  red_flags:
+    - No built-in multi-agent orchestration — single-agent-first design. Need to build your own patterns with pydantic-graph.
+    - Logfire ecosystem gravity — first-class instrumentation flows through Pydantic's commercial observability platform
+    - Optional dependency sprawl (37+ groups) — users must think about what to install
+    - No server runtime — wire up A2A/AG-UI/FastAPI yourself (arguably a feature)
+    - Large core files — agent/__init__.py (2734), messages.py (2553), _agent_graph.py (1945), mcp.py (1483)
+  summary: >
+    The most type-safe agent framework in Python, and the only one where agent
+    dependencies and outputs are generic parameters validated at type-check time.
+    Built by the Pydantic team with the same engineering culture — strict typing,
+    small composable primitives, real-API tests, backward-compatibility discipline.
+    Ships with evaluation, state machines, durable execution integrations, first-class
+    MCP/A2A/AG-UI, and a clean CLI. Weaker on multi-agent orchestration and doesn't
+    ship a server runtime. Strongest choice for Python teams prioritizing type safety.

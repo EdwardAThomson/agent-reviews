@@ -1,0 +1,129 @@
+name: LangGraph
+slug: langgraph
+category: frameworks
+review: reviews/frameworks/langgraph.md
+status: active
+
+identity:
+  repo: https://github.com/langchain-ai/langgraph
+  commit: 6719d34023ced81382223407c665fd0980279eea
+  commit_date: 2026-04-14
+  review_date: 2026-04-14
+  language: [Python]
+  license: MIT
+  loc: 135000
+  files: 315
+  dependencies:
+    direct: 6
+    notes: "core — langchain-core, checkpoint, sdk, prebuilt, xxhash, pydantic"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    The Pregel-inspired orchestration framework from LangChain Inc — stateful
+    graph execution with first-class checkpointing, human-in-the-loop interrupts,
+    7 streaming modes, and production deployment tooling. The de facto standard
+    for building durable AI agents in Python.
+  notable_features:
+    - Pregel superstep model with channel versions and reducers
+    - First-class checkpointing with thread IDs (conversational memory, time-travel, resume after crash)
+    - Vector search in checkpoint backends (SQLite sqlite-vec, Postgres pgvector)
+    - Seven streaming modes (values, updates, checkpoints, tasks, debug, messages, custom)
+    - Command class for complex control flow (update, goto, resume, parent-graph comm)
+    - Send class for dynamic map-reduce fan-out
+
+capabilities:
+  architecture:
+    pattern: monorepo of 8 libs with Pregel execution engine
+    summary: >
+      langgraph (core, 20k LOC), langgraph-prebuilt (ReAct, ToolNode),
+      langgraph-checkpoint (interfaces), langgraph-checkpoint-sqlite and
+      -postgres (backends), langgraph-cli (deployment), langgraph-sdk-py
+      (client). StateGraph builder compiles to Pregel. Channel abstraction
+      provides pluggable update semantics.
+  llm_integration:
+    providers: null
+    gateway: custom
+    provider_list: [any-langchain-compatible]
+    auth: [api_key]
+    notes: No built-in LLM integration. Inherits model support from langchain-core's BaseChatModel. Users bring any LangChain-compatible provider. Tool binding on model (model.bind_tools(tools)) before use in node. Provider-agnostic by design — LangGraph orchestrates, LangChain providers execute.
+  tool_calling:
+    pattern: ToolNode with parallel execution + typed state/store injection
+    mcp_support: false
+    mcp_stance: n/a
+    builtin_tools: [ToolNode, ValidationNode, tools_condition]
+    notes: ToolNode executes tool calls from model outputs in parallel, with custom error handling, state injection (InjectedState), store injection (InjectedStore), command-based control flow. ToolRuntime dataclass bundles execution context. Tools are standard LangChain BaseTool or @tool-decorated.
+  memory:
+    session_persistence: true
+    compaction: false
+    branching: true
+    vector_store: true
+    notes: >
+      Two distinct persistence layers. Checkpointer — BaseCheckpointSaver
+      interface with sync/async get/put/list/delete. Implementations —
+      InMemorySaver, SqliteSaver, PostgresSaver (psycopg 3 async pool).
+      Durability modes (sync, async, exit). Thread IDs enable conversational
+      memory, time-travel. Store — BaseStore with hierarchical namespaces,
+      vector search via pgvector or sqlite-vec.
+  orchestration:
+    pattern: Pregel superstep model with ThreadPoolExecutor / asyncio
+    sub_agents: true
+    plan_mode: true
+    notes: Each superstep reads channel values, determines next tasks based on versions, executes tasks in parallel, applies reducers, checkpoints, repeats until no pending tasks. Send enables dynamic map-reduce. Command for complex control flow (update/goto/resume/parent-comm). Retry policies per node with exponential backoff. Recursion limit. Subgraph composition.
+  io: [library, cli, langgraph-server, python-sdk, js-sdk]
+  testing:
+    framework: pytest + pytest-asyncio + syrupy
+    file_count: 111
+    faux_provider: false
+    coverage_signal: ~72000 LOC test code; 53% test-to-code ratio; 21 CI workflows including per-lib lint (ruff, mypy strict), per-lib pytest matrix across Python 3.10-3.13, SDK method parity checks, CLI schema validation, integration tests; contract tests for checkpointer and store implementations.
+  security:
+    default_bash_sandbox: false
+    approval_gate: interrupts provide natural approval gates (Command(resume=...))
+    credential_storage: SDK Bearer tokens + custom handlers; beta at-rest encryption
+    notes: No built-in command sandboxing — tool execution is user's responsibility. mypy disallow_untyped_defs=True enforced. Checkpoint serde includes EncryptedSerializer. Thread isolation via thread_id provides multi-tenant separation. Interrupts pause graphs at designated nodes waiting for client resume.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "pip install langgraph"
+    binary: false
+    docker: true
+    platforms: [linux, macos, windows]
+    notes: Three tiers — library usage (embed in process); self-hosted server via `langgraph up` with Docker Compose running langgraph-api (closed-source) + Postgres requiring LANGGRAPH_CLOUD_LICENSE_KEY; managed LangSmith Deployment platform with LangGraph Studio visual debugger.
+  docs: >
+    External docs site at docs.langchain.com (not in repo) covers Graph API,
+    streaming, persistence, memory, workflows, how-tos, tutorials. API
+    reference at reference.langchain.com. In-repo — CLAUDE.md/AGENTS.md
+    (contributor guidance), README quickstart, examples/ directory with 20+
+    categories (chatbots, multi-agent, RAG, plan-and-execute, reflexion,
+    rewoo, self-discover, LATS, web-navigation, USACO).
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 4
+  maturity: production
+  innovation:
+    highlights:
+      - Pregel superstep model applied to LLM agents (borrowed from Google's Pregel 2010)
+      - First-class checkpointing with thread IDs — long-running workflows, time-travel, conversational memory as single primitive
+      - Vector search in checkpoint backends (SQLite via sqlite-vec, Postgres via pgvector)
+      - Command-based control flow algebra for interrupts, parent-graph comm, dynamic routing
+      - Send class for map-reduce fan-out native to the graph model
+  practical_utility:
+    rating: high
+    target_user: Teams building serious stateful agents in Python that need durability, observability, resumability — multi-step workflows with human approval, conversational memory, multi-agent supervisor patterns, crash-safe checkpointing.
+  vendor_lock_in: moderate
+  red_flags:
+    - Server runtime (langgraph-api) is closed-source and requires a license key — limits self-hosted flexibility
+    - LangSmith ecosystem lock-in for observability, Studio visual debugger, managed deployment
+    - langchain-core dependency churn — pinning to alpha versions in production-tagged packages creates upgrade friction
+    - Pregel/channels/reducers/supersteps mental model has a steeper learning curve than simpler frameworks
+  summary: >
+    The most architecturally serious open-source agent framework available. Pregel
+    execution model, first-class checkpointing, and human-in-the-loop primitives
+    make LangGraph the right choice for production agent systems that need
+    durability, observability, and resumability. Main costs are ecosystem lock-in
+    around LangSmith/LangChain, closed-source server runtime limiting self-hosted
+    flexibility, and learning curve steeper than simpler frameworks. For agents
+    that must survive crashes and scale horizontally, the engineering investment
+    pays off; for quick prototypes, overkill.

@@ -1,0 +1,119 @@
+name: AutoGPT
+slug: autogpt
+category: frameworks
+review: reviews/frameworks/autogpt.md
+status: active
+
+identity:
+  repo: https://github.com/Significant-Gravitas/AutoGPT
+  commit: ef477ae4b9ea1d6f06807306ed0fde80dbd615a3
+  commit_date: 2026-04-08
+  review_date: 2026-04-10
+  language: [Python, TypeScript]
+  license: PolyForm Shield 1.0.0
+  loc: null
+  files: 2291
+  dependencies:
+    direct: 100
+    notes: "~100 Python + ~130 npm; PolyForm Shield on platform, MIT on classic"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    From viral GPT-4 experiment to commercial visual agent-building platform —
+    90+ blocks, 100+ LLM models, agent marketplace, CoPilot with Claude Agent SDK.
+    The OG autonomous agent, dramatically transformed.
+  notable_features:
+    - Visual block-based agent builder (@xyflow/react graph editor)
+    - 92 Block types including social media, search, scraping, databases, cloud
+    - CoPilot — AI that builds AI agents via Claude Agent SDK
+    - Agent marketplace and store
+    - 100+ LLM model variants via LlmModel enum
+    - 15+ Docker services microservice architecture
+
+capabilities:
+  architecture:
+    pattern: microservices via Docker Compose with dual-era codebase
+    summary: >
+      autogpt_platform/ is FastAPI REST + executor consuming RabbitMQ +
+      WebSocket server + scheduler + notification service + CoPilot executor +
+      database manager. Frontend is standalone Next.js. classic/ contains
+      original autonomous agent (unsupported).
+  llm_integration:
+    providers: null
+    gateway: custom
+    provider_list: [openai, anthropic, groq, ollama, openrouter, gemini, mistral, cohere, deepseek, perplexity, grok, llama]
+    auth: [api_key]
+    notes: LlmModel enum defines 100+ model variants through GPT-5.2 and Claude 4.6 Opus. Each carries context window, max output, price tier, provider metadata. CoPilot uses Langfuse for observability and prompt versioning.
+  tool_calling:
+    pattern: Block class hierarchy with typed Pydantic Input/Output
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [ai, social-media, search, scraping, email, google, github, notion, hubspot, video-gen, image-gen, spreadsheets, sql]
+    notes: 92 Block types inheriting from Block with typed Pydantic schemas and async run. CoPilot has ~30 additional tools (agent creation, block running, bash exec, browser navigation). MCP is a first-class block type.
+  memory:
+    session_persistence: true
+    compaction: false
+    branching: false
+    vector_store: true
+    notes: Workflows and execution history in PostgreSQL via Prisma with pgvector. Semantic memory via Mem0 and Pinecone blocks. CoPilot maintains chat sessions, user "understandings" (persistent context across conversations), workspace files. Redis for ephemeral cache.
+  orchestration:
+    pattern: graph-based execution engine with DAG workflows
+    sub_agents: true
+    plan_mode: false
+    notes: ExecutionProcessor consumes from RabbitMQ, resolves dependencies, validates inputs, manages credentials, tracks costs. Supports sub-graph execution, dry-run simulation, human-in-the-loop gates, APScheduler scheduling. CoPilot adds conversational orchestration via Claude Agent SDK.
+  io: [web-ui, rest-api, websocket, cli, one-line-installer]
+  testing:
+    framework: pytest (backend) + Vitest (frontend)
+    file_count: 280
+    faux_provider: false
+    coverage_signal: 203 backend test files with snapshot testing, async support, mock JWT; 77 frontend test files with React Testing Library, MSW, Playwright, Storybook; CoPilot tools have individual test files.
+  security:
+    default_bash_sandbox: true
+    approval_gate: human-in-the-loop gates via graph nodes
+    credential_storage: JWT auth via Supabase; Stripe billing; credit systems
+    notes: SecurityHeadersMiddleware enforces Cache-Control with explicit allowlist. Code execution sandboxed via E2B cloud (not local Docker). ClamAV virus scanning for uploads. CoPilot automod for content moderation. AGENTS.md documents TOCTOU awareness, sanitized error paths.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "one-line install script or Docker Compose"
+    binary: false
+    docker: true
+    platforms: [linux, macos]
+    notes: Docker Compose with 15+ services. Multi-stage Dockerfile (Debian 13 slim, Python 3.13). Requirements 4+ cores, 8-16GB RAM, 10GB storage. Cloud-hosted beta in closed beta.
+  docs: >
+    Extensive AGENTS.md/CLAUDE.md at every sub-project level — unusually thorough,
+    documenting architecture, tasks, style, testing, gotchas. External docs at
+    docs.agpt.co. Frontend CONTRIBUTING.md rivals a small textbook. Code style
+    guide says "avoid comments at all times unless very complex."
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 3.5
+  maturity: production
+  innovation:
+    highlights:
+      - Visual block-based agent builder democratizes creation beyond prompt engineering
+      - CoPilot — AI that builds AI agents is genuinely meta
+      - Agent marketplace creates an ecosystem
+      - 92 integration blocks with typed schemas
+      - Claude Agent SDK integration for CoPilot
+  practical_utility:
+    rating: high
+    target_user: Non-programmers wanting AI automations; developers wanting a visual agent builder. Self-hosters with DevOps capacity for Docker Compose.
+  vendor_lock_in: moderate
+  red_flags:
+    - PolyForm Shield License on platform code — non-compete restriction prohibiting use in competing products
+    - Classic AutoGPT is dead — explicitly unsupported, preserved for educational/historical purposes, with known vulnerabilities
+    - Massive dependency surface — ~100 Python + ~130 npm packages
+    - 15+ Docker services for self-hosting is a significant operational burden
+    - Credit/billing baked into core — open-source version may feel constrained without commercial backend
+  summary: >
+    AutoGPT has metamorphosed from a viral GPT-4 autonomy experiment into a serious
+    commercial platform for visual AI workflow automation. The current codebase is
+    well-engineered with professional practices, and the block-based architecture
+    with 90+ integrations provides genuine value. Key tensions — PolyForm Shield
+    license vs open-source reputation, operational complexity of self-hosting, and
+    disconnect between project's fame (earned by deprecated classic agent) and
+    current commercial direction.

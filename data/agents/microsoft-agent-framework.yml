@@ -1,0 +1,138 @@
+name: Microsoft Agent Framework
+slug: microsoft-agent-framework
+category: frameworks
+review: reviews/frameworks/microsoft-agent-framework.md
+status: active
+
+identity:
+  repo: https://github.com/microsoft/agent-framework
+  commit: 485af07b8c21896b7f24a0313b5a226b3bd711f8
+  commit_date: 2026-04-14
+  review_date: 2026-04-14
+  language: [Python, C#]
+  license: MIT
+  loc: 381000
+  files: 1739
+  dependencies:
+    direct: 7
+    notes: "Python core — pydantic, httpx, opentelemetry-sdk, mcp, openai, azure-identity, typing-extensions; .NET via Microsoft.Extensions.AI 10.4"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    Microsoft's enterprise-ready successor to AutoGen — fully released at 1.0/1.1,
+    Python + .NET parity, 27 packages per language, DAG workflows with
+    checkpointing and time-travel, 5 orchestration builders, native A2A/MCP/AG-UI
+    protocols, Azure Foundry/Copilot Studio/Cosmos integration, declarative YAML
+    agents, and 23 ADRs documenting architectural decisions.
+  notable_features:
+    - Dual-language (Python + .NET) parity as a design constraint
+    - Five orchestration builders (Sequential, Concurrent, Handoff, GroupChat, Magentic)
+    - DAG workflows with checkpointing and time-travel via Pregel-like supersteps
+    - Workflow source generators (.NET Roslyn) eliminate reflection from message routing
+    - Declarative agents in YAML with structured actions for GitOps
+    - 23 ADRs before 1.0 — enterprise-grade architectural discipline
+    - Durable Task Framework integration for multi-hour/multi-day orchestrations
+
+capabilities:
+  architecture:
+    pattern: dual-language monorepo with 27 packages per language
+    summary: >
+      python/packages/ (27 packages) and dotnet/src/ (27 projects with
+      Microsoft.Agents.AI.* namespaces) with shared proto-like YAML contracts.
+      BaseAgent → RawAgent → Agent core. BaseChatClient with capability
+      protocols (SupportsMCPTool, SupportsCodeInterpreterTool, etc.).
+  llm_integration:
+    providers: null
+    gateway: custom
+    provider_list: [openai, azure-openai, foundry, anthropic, bedrock, ollama, foundry-local, gemini, claude-sdk, copilot-studio, github-copilot]
+    auth: [api_key, azure-identity, managed-identity]
+    notes: Provider-per-package design — each LLM backend separately versioned. Stable — OpenAI, Foundry. Beta — Anthropic, Bedrock, Ollama, Claude SDK, Copilot Studio, GitHub Copilot. Alpha — Gemini. ChatClientProtocol carries fine-grained capability markers. Lazy loading via __getattr__.
+  tool_calling:
+    pattern: "@tool decorator with hybrid provider-specific + generic function tools"
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [function-tool, code-interpreter, file-search, web-search, image-generation, mcp-stdio, mcp-http, mcp-websocket]
+    notes: Pydantic-based auto schema generation. Per ADR-0002 provider-specific tools (hosted code interpreter, file search, web search, image gen) coexist with generic function tools and fall back gracefully. First-class MCP with three transports. Tool approval as first-class message content type (FunctionApprovalRequestContent).
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: true
+    vector_store: true
+    notes: >
+      Three layers — Sessions (AgentSession with pluggable HistoryProvider,
+      ContextProvider injects RAG); Workflow checkpointing (FileCheckpointStorage,
+      InMemoryCheckpointStorage, CosmosCheckpointStorage with restricted pickle);
+      Durable agents via durabletask integration (Microsoft Durable Task Framework
+      for multi-hour/day orchestrations with replay). Memory integrations — Mem0,
+      Redis, Azure AI Search, Azure Cosmos.
+  orchestration:
+    pattern: graph-based workflows + five pre-built orchestration builders
+    sub_agents: true
+    plan_mode: true
+    notes: WorkflowBuilder with directed edges between Executor subclasses. Edge types — SingleEdge, FanOutEdgeGroup, FanInEdgeGroup, SwitchCaseEdgeGroup. Five builders — SequentialBuilder, ConcurrentBuilder, HandoffBuilder, GroupChatBuilder, MagenticBuilder. .NET workflow source generators via Roslyn.
+  io: [python-api, dotnet-api, devui, a2a, ag-ui, aspnet-core-hosting, azure-functions]
+  testing:
+    framework: pytest (Python) + xUnit v3 (.NET)
+    file_count: 243
+    faux_provider: false
+    coverage_signal: 205 Python + 38 .NET test projects; 80% code coverage threshold enforced in CI; 26 GitHub Actions workflows covering .NET build-and-test (net8/net9/net10 matrix with parallel Docker, nightly UTC), integration tests, sample validation, code style, Python pipelines, CodeQL, merge gatekeeper.
+  security:
+    default_bash_sandbox: false
+    approval_gate: FunctionApprovalRequestContent as first-class message type
+    credential_storage: azure-identity for managed identity and RBAC
+    notes: >
+      Pydantic strict validation at all boundaries. Restricted pickle
+      deserialization in checkpoint storage. Tool approval workflow as
+      first-class message type (not convention). Optional Bearer auth on
+      DevUI. Purview integration provides data governance and compliance hooks.
+      Middleware pipeline enables PII redaction, prompt injection detection,
+      audit logging.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "pip install agent-framework[openai] or NuGet Microsoft.Agents.AI.*"
+    binary: false
+    docker: true
+    platforms: [linux, macos, windows]
+    notes: ASP.NET Core hosting with DI, middleware, OpenAPI. Azure Functions with Durable Task for long-running workflows. Docker via .NET Aspire (SDK 13.0.2). OpenTelemetry everywhere with Azure Monitor exporter. Declarative YAML agents for GitOps.
+  docs: >
+    23 Architecture Decision Records in docs/decisions/ including run response
+    design (516 lines with comparisons to AutoGen, OpenAI Assistants, Google
+    ADK, LangGraph), tool abstraction, OpenTelemetry, context compaction,
+    structured output, middleware, serialization, skills, provider alignment.
+    FAQS.md, CODING_STANDARD.md. Samples organized by complexity (01-get-started
+    through 05-end-to-end) with AutoGen migration paths.
+
+opinions:
+  ratings:
+    code_quality: 4.5
+    maintainability: 4
+  maturity: production
+  innovation:
+    highlights:
+      - Dual-language Python + .NET co-designed parity (rare and significantly harder than single-language)
+      - Workflow source generators eliminate reflection from message routing at compile time
+      - Capability protocols on chat clients (SupportsMCPTool etc.) as type-system-level provider features
+      - Declarative agents in YAML with structured actions enable GitOps for agent config
+      - 23 ADRs before 1.0 — enterprise architectural discipline
+      - Tool approval as first-class message content type rather than callback convention
+      - Durable Task Framework integration for multi-hour/multi-day orchestrations
+  practical_utility:
+    rating: high
+    target_user: .NET shops (no serious competition there), Azure-first organizations, and Python teams wanting LangGraph alternative with 1.0 stability. Official migration target for AutoGen users.
+  vendor_lock_in: moderate
+  red_flags:
+    - Azure ecosystem gravity — provider-agnostic in principle but investment signals all point to Microsoft managed services (Foundry, Copilot Studio, CosmosDB, Azure Functions, Purview, Azure Monitor)
+    - 27 packages per language — cognitive load for onboarding
+    - Stable-classifier packages are only core, OpenAI, Foundry — rest are beta or alpha (Gemini)
+    - Dependency on Microsoft's strategic direction — AutoGen precedent
+    - No canonical self-hosted deployment story for Python — devui is developer tool, not production server
+  summary: >
+    The most serious enterprise agent framework available. Dual-language parity,
+    DAG-based workflows with checkpointing and time-travel, 5 orchestration
+    patterns, first-class MCP/A2A/AG-UI, deep Azure integration, declarative YAML
+    agents, and 23 ADRs. Production-released at 1.0 with Microsoft's LTS commitment
+    as AutoGen successor. Azure ecosystem gravity is main tradeoff — clear choice
+    for Microsoft-world teams, overhead for others. Strong recommendation for .NET
+    teams, Azure-first orgs, and teams that value enterprise-grade rigor.
