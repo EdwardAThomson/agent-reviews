@@ -1,0 +1,120 @@
+name: memU
+slug: memu
+category: frameworks
+review: reviews/frameworks/memu.md
+status: active
+
+identity:
+  repo: https://github.com/NevaMind-AI/memU
+  commit: 357aefc8012705bfde723f141d52f675fe712bed
+  commit_date: 2026-03-23
+  review_date: 2026-04-10
+  language: [Python, Rust]
+  license: Apache-2.0
+  loc: 15600
+  files: 239
+  dependencies:
+    direct: 10
+    notes: "defusedxml, httpx, numpy, openai, pydantic, sqlmodel, alembic, pendulum, langchain-core, lazyllm"
+  commits: 287
+  contributors: 34
+  stated_purpose: >
+    A memory framework built for 24/7 proactive agents — continuously captures and
+    understands user intent to reduce LLM token costs while enabling long-running
+    agents that anticipate and act without explicit commands.
+  notable_features:
+    - '"Memory as file system" ontology (Categories > Items > Resources)'
+    - Tiered retrieval cascade with LLM sufficiency checks between tiers
+    - Salience scoring (similarity * log(reinforcement+1) * recency_decay)
+    - Multi-modal ingestion (conversation, document, image, video, audio)
+    - Three storage backends (InMemory, PostgreSQL+pgvector, SQLite)
+    - Three integration surfaces (LangGraph, Claude Agent SDK MCP, OpenAI wrapper)
+
+capabilities:
+  architecture:
+    pattern: mixin-composed service over pluggable Database Protocol
+    summary: >
+      MemoryService composed of MemorizeMixin/RetrieveMixin/CRUDMixin; clean
+      module boundaries (app/database/llm/embedding/workflow/prompts); Rust
+      extension is scaffold only.
+  llm_integration:
+    providers: null
+    gateway: custom
+    provider_list: [openai, openrouter, grok, doubao, lazyllm]
+    auth: [api_key]
+    notes: >
+      LLMConfig with 3 backends (sdk/httpx/lazyllm_backend); LLMClientWrapper
+      adds interceptor hooks, latency tracking, token usage extraction; multiple
+      LLM profiles per pipeline step.
+  tool_calling:
+    pattern: exposes itself as tools (rather than calling tools itself)
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: null
+    notes: >
+      LangGraph StructuredTool wrappers; Claude Agent SDK MCP server (in
+      examples); transparent OpenAI wrapper injects memories into system prompt.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: false
+    vector_store: true
+    notes: Core product — tiered RAG (route intention -> category -> items -> resources) or LLM-based retrieval; salience-aware ranking.
+  orchestration:
+    pattern: pipeline-based (PipelineManager + WorkflowStep)
+    sub_agents: false
+    plan_mode: false
+    notes: Named pipelines with requires/produces validation, mutable at runtime, pluggable WorkflowRunner backends (Temporal, Burr).
+  io: [python-library, langgraph-tool, mcp-server, openai-wrapper]
+  testing:
+    framework: pytest + pytest-asyncio
+    file_count: 15
+    faux_provider: false
+    coverage_signal: no e2e tests; some tests require live API key
+  security:
+    default_bash_sandbox: null
+    approval_gate: n/a
+    credential_storage: API keys passed as config
+    notes: defusedxml for LLM-XML parsing; where-filter validation against user_model; prompt-injection surface via user-supplied memory content only partially mitigated.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "uv install (maturin build backend)"
+    binary: false
+    docker: false
+    platforms: [linux, macos, windows]
+    notes: Python >=3.13; optional extras postgres/langgraph/claude.
+  docs: >
+    Substantial README (28KB); docs/ has architecture + integration + deployment +
+    ADR directory; 8+ runnable examples; per-memory-type prompt templates
+    extensively documented.
+
+opinions:
+  ratings:
+    code_quality: 3.5
+    maintainability: 3
+  maturity: alpha
+  innovation:
+    highlights:
+      - Tiered retrieval cascade with LLM sufficiency short-circuit
+      - Principled salience scoring formula
+      - '"Memory as file system" structured ontology'
+      - Pluggable pipeline with revision tracking and requires/produces validation
+  practical_utility:
+    rating: moderate
+    target_user: Developers building personal-memory-augmented agents who want more structure than a raw vector DB.
+  vendor_lock_in: moderate
+  red_flags:
+    - Python 3.13+ requirement is aggressive with no 3.13-only features apparent
+    - Rust extension is a no-op stub requiring a toolchain for zero benefit
+    - No true end-to-end tests; test_inmemory.py requires live API key
+    - Prompt injection surface on user-supplied memory content
+    - numpy>=2.3.4 pin may reference non-existent version
+    - langchain-core as hard dependency even when unused
+  summary: >
+    Presents a genuinely innovative architecture for structured agent memory, with
+    tiered retrieval cascades and salience-aware ranking as its strongest
+    differentiators. Realistically late alpha despite v1.5.1 label: Rust stub,
+    dedup no-op, thin tests, fragile dependency pins. Promising for
+    experimentation but needs hardening before production use.

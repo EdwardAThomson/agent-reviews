@@ -1,0 +1,112 @@
+name: Aider
+slug: aider
+category: coding
+review: reviews/coding/aider.md
+status: active
+
+identity:
+  repo: https://github.com/Aider-AI/aider
+  commit: f09d70659ae90a0d068c80c288cbb55f2d3c3755
+  commit_date: 2026-04-08
+  review_date: 2026-04-10
+  language: [Python]
+  license: Apache-2.0
+  loc: null
+  files: 79
+  dependencies:
+    direct: 35
+    notes: "litellm, gitpython, tree-sitter, prompt-toolkit, rich"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    The most battle-tested terminal AI pair programmer — tree-sitter repo maps with
+    PageRank, polymorphic edit formats, deep git integration, and 88% self-authored
+    code.
+  notable_features:
+    - Tree-sitter repo map with PageRank symbol selection
+    - 14+ edit formats (diff, whole, unified, patch, architect, udiff, ...)
+    - Architect mode (planning + editing models)
+    - File watcher for AI-tagged comments
+    - Prompt cache warming
+    - Voice input via Whisper
+
+capabilities:
+  architecture:
+    pattern: factory-dispatched coders over a single Coder base
+    summary: >
+      aider.main:main sets up CLI/git/model, instantiates a Coder subclass (14+)
+      per edit format; run_one feeds prompt to litellm, parses edits, applies,
+      lints, tests, auto-commits.
+  llm_integration:
+    providers: null
+    gateway: litellm
+    provider_list: [openai, anthropic, deepseek, gemini, grok, openrouter]
+    auth: [api_key]
+    notes: >
+      MODEL_ALIASES for convenience; per-model YAML settings bundled; pricing
+      metadata cached from litellm's JSON database (24hr TTL).
+  tool_calling:
+    pattern: structured text parsing (SEARCH/REPLACE, unified diffs, whole-file)
+    mcp_support: false
+    mcp_stance: n/a
+    builtin_tools: [shell-via-markdown]
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: false
+    vector_store: false
+    notes: Git-native — auto-commits with AI-generated messages; SQLite repo-map cache; session history persisted to markdown.
+  orchestration:
+    pattern: single-agent with reflection loop
+    sub_agents: false
+    plan_mode: true
+    notes: Architect mode = planner + editor; up to 3 self-correction rounds after lint/test failures.
+  io: [cli, streamlit-gui, voice, clipboard-watcher]
+  testing:
+    framework: unittest + MagicMock
+    file_count: 35
+    faux_provider: false
+    coverage_signal: coverage tooling configured; LLM boundary mocked
+  security:
+    default_bash_sandbox: false
+    approval_gate: per-command confirmation prompt
+    credential_storage: .env auto-added to .gitignore
+    notes: --no-verify-ssl flag exists; dual analytics (Mixpanel + PostHog).
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "pip install aider-chat"
+    binary: false
+    docker: true
+    platforms: [linux, macos, windows]
+  docs: >
+    Extensive README with testimonials; full docs site at aider.chat;
+    HISTORY.md + CONTRIBUTING.md; inline docs moderate.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 3
+  maturity: production
+  innovation:
+    highlights:
+      - Tree-sitter + PageRank repo map
+      - Architect mode (planner + editor)
+      - File-watcher triggers on AI-tagged comments
+      - Prompt cache warming every 5 minutes
+  practical_utility:
+    rating: very high
+    target_user: Any developer in a git repo — auto-detects API keys, creates repos, handles .gitignore.
+  vendor_lock_in: none
+  red_flags:
+    - No sandboxing — shell commands run with full user privileges after single confirmation
+    - Dual analytics (Mixpanel + PostHog) with hardcoded project tokens
+    - 88% AI-written code raises questions about architectural understanding
+    - --no-verify-ssl flag could mask MITM attacks
+  summary: >
+    The most feature-complete and battle-tested terminal AI coding assistant. Core
+    innovations — tree-sitter repo map with PageRank, polymorphic edit formats,
+    architect mode — represent genuine advances in LLM-assisted development. Main
+    concerns are lack of sandboxing, monolithic growth of core files, and the
+    philosophical tension of a predominantly self-authored codebase.

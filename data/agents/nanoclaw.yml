@@ -1,0 +1,117 @@
+name: NanoClaw
+slug: nanoclaw
+category: general-purpose
+review: reviews/general-purpose/nanoclaw.md
+status: active
+
+identity:
+  repo: https://github.com/qwibitai/nanoclaw
+  commit: 934f063aff5c30e7b49ce58b53b41901d3472a3e
+  commit_date: 2026-04-07
+  review_date: 2026-04-10
+  language: [TypeScript]
+  license: MIT
+  loc: 8500
+  files: 119
+  dependencies:
+    direct: 3
+    notes: "@onecli-sh/sdk, better-sqlite3, cron-parser"
+  commits: 685
+  contributors: 68
+  stated_purpose: >
+    An AI assistant that runs Claude agents securely in their own Linux
+    containers. Lightweight, built to be easily understood and fully customized
+    as a single Node.js process with isolated, containerized agent execution.
+  notable_features:
+    - Docker / Apple Container isolation per group
+    - Multi-channel (WhatsApp, Telegram, Discord, Slack, Gmail via skills)
+    - Scheduled tasks with cron
+    - Claude Agent SDK inside containers
+    - Skill-based extensibility via feature branches
+    - Credential isolation via OneCLI Agent Vault
+
+capabilities:
+  architecture:
+    pattern: single-process event loop with four subsystems
+    summary: >
+      Message polling (2s), IPC file watcher, scheduled task loop, session
+      cleanup. GroupQueue manages per-group concurrency with max 5 concurrent
+      containers, exponential-backoff retry.
+  llm_integration:
+    providers: 1
+    gateway: direct
+    provider_list: [anthropic]
+    auth: [api_key]
+    notes: Host makes zero LLM calls — all inference happens inside containers via @anthropic-ai/claude-agent-sdk with bypassPermissions.
+  tool_calling:
+    pattern: Claude Agent SDK tools inside container + MCP IPC server
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [Bash, Read, Write, Edit, Glob, Grep, WebSearch, WebFetch, Task, SendMessage, TodoWrite]
+    notes: 17 tool families inside container; 8 IPC tools via MCP server for cross-group messaging and task scheduling.
+  memory:
+    session_persistence: true
+    compaction: false
+    branching: false
+    vector_store: false
+    notes: SQLite (better-sqlite3) with 7 tables; per-group CLAUDE.md for persistent memory; Claude SDK session IDs for conversation continuity.
+  orchestration:
+    pattern: single-agent per group
+    sub_agents: false
+    plan_mode: false
+    notes: No multi-agent orchestration within a conversation; follow-ups during active container via IPC polling.
+  io: [whatsapp, telegram, discord, slack, gmail]
+  testing:
+    framework: vitest
+    file_count: 18
+    faux_provider: false
+    coverage_signal: substantive — 27-case IPC authorization matrix, fake-timer container tests, in-memory SQLite
+  security:
+    default_bash_sandbox: true
+    approval_gate: container-isolated (bypassPermissions inside)
+    credential_storage: OneCLI gateway injects API keys at request time; containers never see real secrets
+    notes: >
+      Per-group filesystem isolation; mount-security allowlist tamper-proof from
+      containers; .env shadow-mounted to /dev/null; sender allowlist; IPC
+      authorization prevents cross-group privilege escalation.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "npm install then npm run setup"
+    binary: false
+    docker: true
+    platforms: [linux, macos]
+    notes: launchd on macOS, systemd on Linux; container image is node:22-slim with Chromium, git, agent-browser, @anthropic-ai/claude-code.
+  docs: >
+    README in 3 languages; docs/ has 10 documents including architecture
+    decisions, security model, SDK deep-dive; CLAUDE.md at root as developer
+    guide; groups/main/CLAUDE.md is the agent's operational system prompt.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 4
+  maturity: beta
+  innovation:
+    highlights:
+      - Container isolation as security model (Docker or Apple Container)
+      - Only 3 runtime dependencies for the capability delivered
+      - Skill-as-branch extensibility pattern
+      - .env shadow-mounted to /dev/null to prevent credential leakage
+      - Mount allowlist stored tamper-proof outside project root
+  practical_utility:
+    rating: high
+    target_user: Someone who wants a personal/team AI assistant on their own hardware, accessible from messaging apps, without SaaS data exposure.
+  vendor_lock_in: high
+  red_flags:
+    - "bypassPermissions + allowDangerouslySkipPermissions: true inside container — full host access if container escape exists"
+    - Claude-only vendor lock-in; swapping LLMs would require full rewrite
+    - stopContainer uses execSync with string concatenation despite comment claiming execFileSync
+    - Polling everywhere (2s/1s/500ms/60s) — adds latency and CPU waste at scale
+  summary: >
+    A well-crafted late-beta system that solves running Claude Code as an always-on,
+    multi-channel, multi-tenant assistant with genuine security isolation via
+    containers. High code quality for its size, careful security thinking, only 3
+    runtime deps. Main concerns are Claude vendor lock-in and the bypassPermissions
+    flag — both conscious tradeoffs mitigated by container isolation.
