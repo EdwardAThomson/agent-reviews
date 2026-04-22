@@ -1,0 +1,3 @@
+# Generated comparison files — collapsed by default in GitHub PR diff view.
+# Source of truth: data/agents/*.yml + scripts/build_comparisons.py
+comparisons/*.md linguist-generated=true

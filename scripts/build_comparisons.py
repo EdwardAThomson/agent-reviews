@@ -22,7 +22,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data" / "agents"
-DEFAULT_OUT = REPO_ROOT / "comparisons-generated"
+DEFAULT_OUT = REPO_ROOT / "comparisons"
 
 CATEGORY_ORDER = ["general-purpose", "coding", "frameworks"]
 CATEGORY_TITLE = {
@@ -195,6 +195,29 @@ def render_tier1_overview(agents: list[dict[str, Any]]) -> str:
             f"{cell(ident.get('commits'))} | {cell(ident.get('contributors'))} |"
         )
     out.append("")
+    out.append("---")
+    out.append("")
+
+    # Capabilities summary (cross-cut of tier2 data)
+    out.append("## Capabilities Summary")
+    out.append("")
+    out.append("| Agent | Providers | MCP | Default Sandbox | Sub-agents | Vendor Lock-in |")
+    out.append("|-------|-----------|-----|-----------------|------------|----------------|")
+    for a in agents:
+        cap = a.get("capabilities") or {}
+        llm = cap.get("llm_integration") or {}
+        tool = cap.get("tool_calling") or {}
+        sec = cap.get("security") or {}
+        orc = cap.get("orchestration") or {}
+        op = a.get("opinions") or {}
+        out.append(
+            f"| {a['name']} | {cell(llm.get('providers'))} | "
+            f"{cell(tool.get('mcp_support'))} | "
+            f"{cell(sec.get('default_bash_sandbox'))} | "
+            f"{cell(orc.get('sub_agents'))} | "
+            f"{cell(op.get('vendor_lock_in'))} |"
+        )
+    out.append("")
 
     return "\n".join(out).rstrip() + "\n"
 
@@ -296,6 +319,44 @@ def render_tier3_opinions(agents: list[dict[str, Any]]) -> str:
             continue
         out.append(f"| {a['name']} | {'; '.join(flags)} |")
     out.append("")
+
+    # Maturity spectrum — grouped
+    out.append("## Maturity Spectrum")
+    out.append("")
+    out.append("| Agent | Maturity |")
+    out.append("|-------|----------|")
+    maturity_order = ["prototype", "alpha", "beta", "production", "maintenance", "dormant"]
+    def mat_key(a):
+        m = (a.get("opinions") or {}).get("maturity") or "zzz"
+        return (maturity_order.index(m) if m in maturity_order else len(maturity_order), a["name"].lower())
+    for a in sorted(agents, key=mat_key):
+        m = (a.get("opinions") or {}).get("maturity")
+        out.append(f"| {a['name']} | {cell(m)} |")
+    out.append("")
+
+    # Practical utility
+    out.append("## Practical Utility — Who Should Use What?")
+    out.append("")
+    out.append("| Agent | Rating | Target User |")
+    out.append("|-------|--------|-------------|")
+    for a in agents:
+        pu = ((a.get("opinions") or {}).get("practical_utility") or {})
+        if not pu:
+            continue
+        out.append(f"| {a['name']} | {cell(pu.get('rating'))} | {cell(pu.get('target_user'))} |")
+    out.append("")
+
+    # Overall summaries
+    out.append("## Overall Summaries")
+    out.append("")
+    for a in agents:
+        summary = (a.get("opinions") or {}).get("summary")
+        if not summary:
+            continue
+        out.append(f"### {a['name']}")
+        out.append("")
+        out.append(cell(summary))
+        out.append("")
 
     return "\n".join(out).rstrip() + "\n"
 

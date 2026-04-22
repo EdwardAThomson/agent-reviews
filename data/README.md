@@ -86,8 +86,8 @@ Each sub-block corresponds to a Tier 2 dimension and holds a compact summary + s
 ## Regenerating comparisons
 
 ```bash
-python3 scripts/build_comparisons.py           # writes to comparisons-generated/
-python3 scripts/build_comparisons.py --out comparisons/   # writes to real location (after migration)
+python3 scripts/build_comparisons.py                      # writes to comparisons/
+python3 scripts/build_comparisons.py --out some/dir/      # custom location
 ```
 
-During the migration (only pi populated so far), default output is `comparisons-generated/` so hand-written files in `comparisons/` stay intact for side-by-side comparison. Once all agents are migrated, the default output switches to `comparisons/`.
+The files under `comparisons/` are **generated output** — do not hand-edit. Edit the YAML files here and regenerate.

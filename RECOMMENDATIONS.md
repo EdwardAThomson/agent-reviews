@@ -1,6 +1,6 @@
 # Recommendations Guide
 
-**Based on:** Code-level review of 22 open-source AI agent projects, April 2026
+**Based on:** Code-level review of 23 open-source AI agent projects, April 2026
 **Methodology:** See [METHODOLOGY.md](METHODOLOGY.md) | **Full reviews:** See [reviews/](reviews/)
 
 This guide translates our technical findings into practical guidance for different audiences. Every recommendation is backed by evidence from the individual reviews — follow the links for details.
