@@ -1,0 +1,120 @@
+name: CLIO
+slug: clio
+category: coding
+review: reviews/coding/clio.md
+status: active
+
+identity:
+  repo: https://github.com/SyntheticAutonomicMind/CLIO
+  commit: e0f3fc97eba5e12e40d33df7508e6b45d7b5a313
+  commit_date: 2026-04-07
+  review_date: 2026-04-10
+  language: [Perl]
+  license: GPL-3.0
+  loc: 106000
+  files: 376
+  dependencies:
+    direct: 0
+    notes: "Zero CPAN dependencies — uses core Perl modules only"
+  commits: 880
+  contributors: 1
+  stated_purpose: >
+    A terminal-native AI code assistant written in pure Perl with zero CPAN
+    dependencies — 10+ providers, multi-agent coordination, and a layered
+    security model. Largely AI-pair-programmed by a solo developer.
+  notable_features:
+    - Zero external dependencies (pure Perl, ~140 modules)
+    - 5-level SecretRedactor with ~20+ regex patterns for PII/keys
+    - CommandAnalyzer using intent-based classification (not blocklists)
+    - InvisibleCharFilter defends against Unicode prompt injection
+    - Multi-agent Broker over Unix domain sockets with file locking
+    - tmux/Screen/Zellij multiplexer integration for sub-agent panes
+
+capabilities:
+  architecture:
+    pattern: operation-routing with 17+ namespaces
+    summary: >
+      Entry script bootstraps lib/, hands off to UI::Chat → SimpleAIAgent →
+      WorkflowOrchestrator → ToolExecutor → Tool modules. Tools register
+      operations through CLIO::Tools::Registry with operation-level aliasing.
+  llm_integration:
+    providers: 10
+    gateway: custom
+    provider_list: [github-copilot, openai, anthropic, google-gemini, deepseek, openrouter, minimax, llama-cpp, lm-studio, sam]
+    auth: [api_key, oauth]
+    notes: APIManager (3450 LOC) with streaming, exponential backoff, token tracking, provider-specific headers. ToolCallExtractor handles XML/JSON/bracket formats for models lacking structured function calling.
+  tool_calling:
+    pattern: operation-routing via Tool base class
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [FileOperations, VersionControl, TerminalOperations, MemoryOperations, TodoList, WebOperations, CodeIntelligence, UserCollaboration, ApplyPatch, RemoteExecution, SubAgentOperations, MCPBridge]
+    notes: 12 tool modules; MCP::Client supports Stdio and HTTP transports with OAuth; MCP::Manager handles multi-server lifecycle.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: false
+    vector_store: false
+    notes: Three-tier — short-term KV store, long-term .clio/ltm.json with confidence scores, YaRN conversation threading. User profiling scans sessions across projects.
+  orchestration:
+    pattern: persistent collaborative workers via Coordination::Broker
+    sub_agents: true
+    plan_mode: false
+    notes: Unix domain socket broker with file locking, git locking, knowledge sharing, agent status, message bus, API rate limiting. SubAgent spawns via fork() with persistent/one-shot modes.
+  io: [cli, tmux, screen, zellij, host-protocol]
+  testing:
+    framework: Test::More + custom runner
+    file_count: 116
+    faux_provider: false
+    coverage_signal: "~80 unit + ~30 integration + ~6 e2e; security tests particularly thorough (injection vectors, port validation, shell quoting)"
+  security:
+    default_bash_sandbox: false
+    approval_gate: PathAuthorizer sandbox (inside workspace auto, outside requires auth)
+    credential_storage: environment variables only — never written to disk
+    notes: >
+      Five security modules — SecretRedactor (5 levels, ~20 regex patterns),
+      CommandAnalyzer (intent-based, not blocklists), PathAuthorizer (sandbox),
+      InvisibleCharFilter (Unicode prompt injection defense), RemoteExecution
+      (strict host/port validation, _shell_quote hardening, --sandbox flag).
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "install.sh (system-wide /opt/clio, user ~/.local/clio, or custom)"
+    binary: false
+    docker: true
+    platforms: [linux, macos]
+    notes: Dockerfile on perl:5.38-slim-bookworm installs only IO::Socket::SSL and Net::SSLeay (HTTPS); non-root user.
+  docs: >
+    AGENTS.md v3.0 with complete architectural overview; 24 focused guides in
+    docs/ covering architecture, security, MCP, memory, multi-agent; inline
+    POD docs across all modules; SECURITY.md defines threat model; llms.txt
+    exists for LLM consumption.
+
+opinions:
+  ratings:
+    code_quality: 3.5
+    maintainability: 3
+  maturity: beta
+  innovation:
+    highlights:
+      - Zero CPAN dependencies for ~140 modules (trivially portable deployment)
+      - InvisibleCharFilter with severity classification and audit function
+      - Intent-based command analysis rejecting blocklists as fundamentally incomplete
+      - Multi-agent Broker over Unix domain sockets with API rate limiting
+      - Genuine dogfooding story — AI-built AI tool
+  practical_utility:
+    rating: moderate
+    target_user: Terminal-native developers distrusting Electron wrappers; ops/sysadmin on servers with Perl but not Node/Python; privacy-conscious users wanting audit capability.
+  vendor_lock_in: none
+  red_flags:
+    - GPL-3.0 limits corporate adoption (competitors use Apache-2.0 or MIT)
+    - Solo developer sustainability — ~140 modules with one human is a burnout vector
+    - AI-generated code density may contain patterns the author doesn't fully understand
+    - Test depth shallow — ~140 test files verify object creation more than socket communication
+  summary: >
+    An ambitious, opinionated, and genuinely innovative terminal-native AI code
+    assistant that punches above its weight in security design and multi-agent
+    coordination. Zero-dependency Perl implementation is both its most distinctive
+    feature and its most limiting one. Technically capable and architecturally
+    thoughtful, but facing real sustainability challenges from solo development,
+    GPL licensing, and niche language choice.

@@ -1,0 +1,115 @@
+name: SWE-agent
+slug: swe-agent
+category: coding
+review: reviews/coding/swe-agent.md
+status: maintenance
+
+identity:
+  repo: https://github.com/SWE-agent/SWE-agent
+  commit: 0f4f3bba990e01ca8460b9963abdcd89e38042f2
+  commit_date: 2026-03-24
+  review_date: 2026-04-10
+  language: [Python]
+  license: MIT
+  loc: 11400
+  files: 60
+  dependencies:
+    direct: 22
+    notes: "litellm, swe-rex, pydantic, flask, textual"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    A research-grade AI coding agent from Princeton (NeurIPS 2024) that pioneered
+    the Agent-Computer Interface concept — takes GitHub issues and autonomously
+    fixes them. State-of-the-art on SWE-bench among open-source projects.
+  notable_features:
+    - Agent-Computer Interface (ACI) research contribution
+    - Tool bundles with shell scripts and YAML schemas
+    - Multiple output parsers (FunctionCalling, ThoughtAction, XML, JSON, BashCodeBlock)
+    - RetryAgent wraps runs in multi-attempt loop with scoring
+    - Trajectory JSON files for crash resilience
+    - Web trajectory inspector + Textual TUI inspector
+
+capabilities:
+  architecture:
+    pattern: Agent/Environment/Run split with Pydantic YAML config
+    summary: >
+      Entry point sweagent/run/run.py dispatches subcommands. DefaultAgent step
+      loop queries model, parses action, executes in SWEEnv (SWE-ReX Docker
+      wrapper), records observation. ToolHandler manages command install/parse/block.
+  llm_integration:
+    providers: null
+    gateway: litellm
+    provider_list: [openai, anthropic, azure]
+    auth: [api_key]
+    notes: LiteLLMModel wraps litellm for universal provider support. Thorough cost tracking (per-instance/total/call limits, thread-safe global stats). Supports Anthropic cache_control, extended thinking, max_output_tokens. API key rotation per-thread for batch runs.
+  tool_calling:
+    pattern: tool bundles (shell scripts + YAML schemas)
+    mcp_support: false
+    mcp_stance: n/a
+    builtin_tools: [edit_anthropic, windowed, search, filemap, submit, web_browser, image_tools]
+    notes: Bundle directories with bin/ scripts, config.yaml, optional install.sh. Multiple output parsers for different models. Blocklist prevents dangerous/interactive commands.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: false
+    vector_store: false
+    notes: TrajectoryStep objects saved as .traj JSON after each step. State via container-side "state commands" writing /root/state.json. History processors (LastNObservations, ClosedWindowHistoryProcessor, RemoveRegex, CacheControlHistoryProcessor, ImageParsing).
+  orchestration:
+    pattern: robust error pipeline with requery and retry loops
+    sub_agents: false
+    plan_mode: false
+    notes: Format errors, blocked actions, syntax errors trigger requery (max 3). Cost/context/timeout exceeded triggers autosubmission. RetryAgent wraps in multi-attempt loop — ScoreRetryLoop (LLM scoring) or ChooserRetryLoop (LLM selection). Batch via ThreadPoolExecutor.
+  io: [cli, web-inspector, textual-tui, flask-api, codespaces]
+  testing:
+    framework: pytest (pytest-xdist, pytest-cov)
+    file_count: 31
+    faux_provider: false
+    coverage_signal: covers CLI, agent logic (mock models), environment, command parsing, history processors, tools. Many environment tests marked @pytest.mark.slow. SWE-bench evaluation automated via SweBenchEvaluate hook.
+  security:
+    default_bash_sandbox: true
+    approval_gate: tool blocklist (no per-command prompts)
+    credential_storage: Pydantic SecretStr with env var references
+    notes: Docker sandboxing via SWE-ReX. Tool blocklist prevents interactive/dangerous commands. Propagated env vars can leak into debug logs (explicitly documented).
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "pip install from source"
+    binary: false
+    docker: true
+    platforms: [linux, macos, windows]
+    notes: Docker default backend (image python:3.11). SWE-ReX supports Modal for cloud deployment. GitHub Codespaces for zero-install.
+  docs: >
+    MkDocs-Material site at swe-agent.com with 40+ pages (installation, usage,
+    custom tools, trajectories, API reference); CONTRIBUTING.md; README links
+    to NeurIPS paper and related projects (SWE-bench, SWE-smith, SWE-ReX,
+    mini-SWE-agent).
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 3.5
+  maturity: maintenance
+  innovation:
+    highlights:
+      - Agent-Computer Interface (ACI) concept — interface between agent and environment matters as much as the model
+      - Tool bundle system with shell scripts + YAML schemas
+      - Multiple output parsers (FunctionCalling / ThoughtAction / XML / JSON / BashCodeBlock)
+      - Review/retry loop architecture (ScoreRetryLoop, ChooserRetryLoop)
+      - Container-side state commands as environment interface
+  practical_utility:
+    rating: moderate
+    target_user: Researchers or practitioners running SWE-bench at scale; reference implementation for agent design. Team recommends mini-SWE-agent for new projects.
+  vendor_lock_in: none
+  red_flags:
+    - Entering maintenance mode — README warns development has shifted to mini-SWE-agent
+    - API key leakage — docstring warns propagated env var values can appear in debug log files
+    - Possible logic inversion bug at run_single.py:153
+    - Synchronous asyncio.run() bridge around SWE-ReX may break in existing event loops
+  summary: >
+    A well-engineered research-grade agent that pioneered the ACI concept and
+    delivered SWE-bench state-of-the-art results. Clean architecture, powerful
+    config (Pydantic + YAML), first-class evaluation infrastructure. Main concern
+    is the team's own declaration that it's superseded by mini-SWE-agent — this
+    11k-line codebase is effectively in maintenance mode despite being feature-complete.

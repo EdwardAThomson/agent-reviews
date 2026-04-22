@@ -1,0 +1,123 @@
+name: OpenClaw
+slug: openclaw
+category: general-purpose
+review: reviews/general-purpose/openclaw.md
+status: active
+
+identity:
+  repo: https://github.com/openclaw/openclaw
+  commit: 77bdf2f44db5a9db480f36b06c8c1e143548a753
+  commit_date: 2026-04-10
+  review_date: 2026-04-10
+  language: [TypeScript, Swift, Kotlin]
+  license: MIT
+  loc: 458700
+  files: 13416
+  dependencies:
+    direct: 70
+    notes: null
+  commits: 880
+  contributors: 15
+  stated_purpose: >
+    The maximalist personal AI assistant — 459k LOC TypeScript monolith with 20+
+    channels, 109 bundled extensions, native iOS/Android/macOS apps, and a plugin
+    SDK with enforced architecture boundaries.
+  notable_features:
+    - 109 bundled extensions with typed Plugin SDK
+    - 20+ messaging channels (WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Matrix, Teams, ...)
+    - Native iOS, Android, and macOS (SwiftUI menu bar) apps
+    - Prompt-cache stability as first-class concern with boundary tests
+    - Architecture boundary enforcement via programmatic tests (14+ boundary files)
+    - Session key routing (per-DM, per-group, per-thread, per-guild)
+
+capabilities:
+  architecture:
+    pattern: plugin-oriented monolith with gateway runtime hub
+    summary: >
+      Gateway server wires channel managers, plugin runtimes, cron services,
+      config reloaders, node session runtimes. 109 extensions register
+      capabilities through typed Plugin SDK. Boundary discipline enforced —
+      extensions may only import openclaw/plugin-sdk/* subpaths.
+  llm_integration:
+    providers: null
+    gateway: custom
+    provider_list: [anthropic, openai, google, groq, mistral, deepseek, ollama, xai, nvidia, bedrock, azure, fireworks, together, qwen, moonshot, litellm, vllm, sglang, openrouter, perplexity]
+    auth: [api_key, oauth]
+    notes: Each provider a separate extension with manifest. Wraps pi-agent-core + pi-coding-agent. Prompt construction centralized with cache-stability system ensuring byte-identical prefixes across turns. Auth profile rotation with failover and cooldown.
+  tool_calling:
+    pattern: plugin-SDK tool registration with policy pipeline
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [web-search, web-fetch, image-gen, video-gen, music-gen, tts, pdf-read, canvas, cron, session-mgmt, subagent-orchestration, gateway-control, cross-channel-messaging, node-management, update-plan, coding-tools]
+    notes: Extensive tool catalog. Coding tools (read/write/edit/exec/apply-patch) from pi-coding-agent. MCP first-class — loopback MCP server, channel-level bridging, workspace skills (~60 skill packages). Tool policy pipeline applies allowlists/blocklists/subagent-restrictions/fs-policy.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: true
+    vector_store: true
+    notes: Sessions as JSONL transcripts. Session key routing derives keys from channel/account/peer/agent-binding. Cross-session memory subsystem — memory-core, memory-lancedb (vector), memory-wiki (Karpathy-style wiki). FTS via SQLite unicode61/trigram plus pluggable embeddings.
+  orchestration:
+    pattern: hierarchical subagent spawning with retry-with-failover
+    sub_agents: true
+    plan_mode: true
+    notes: sessions-spawn-tool creates child agents with own sessions, models, thinking levels, workspaces. Subagent registry tracks lifecycle, handles orphan recovery, enforces depth limits. Retry-with-failover rotates auth profiles / switches models / adjusts thinking / triggers compaction on errors.
+  io: [whatsapp, telegram, discord, slack, signal, imessage, matrix, teams, feishu, line, irc, mattermost, nextcloud-talk, nostr, synology-chat, tlon, twitch, zalo, google-chat, qq-bot, bluebubbles, openai-api, openai-responses-api, mcp-http, websocket, ios, android, macos, web-ui, acp]
+  testing:
+    framework: vitest with V8 coverage
+    file_count: 4022
+    faux_provider: false
+    coverage_signal: 70% threshold for lines/branches/functions/statements; unit + integration + E2E + live tests gated by OPENCLAW_LIVE_TEST=1; architecture boundary tests enforce extensions never import core internals; release-check, prepack, npm-publish verification tests.
+  security:
+    default_bash_sandbox: false
+    approval_gate: tool approval system with gateway/push-notification
+    credential_storage: src/secrets/ subsystem with SecretRef semantics, auth profile cooldown/rotation
+    notes: >
+      Agent execution in Docker/Podman sandbox containers (off by default).
+      Security audit subsystem (1400+ lines) checks gateway exposure, sandbox
+      config, filesystem permissions, dangerous flags, plugin trust, exec risks.
+      Gateway auth rate limiting, origin checks, CSP, pre-auth hardening,
+      role-based method scoping. Input validation via Zod at boundaries.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "openclaw onboard (interactive wizard) or npm/pnpm/bun"
+    binary: false
+    docker: true
+    platforms: [linux, macos, ios, android]
+    notes: Multi-stage Dockerfile with pinned SHA256 bases, optional extension inclusion via build args. Separate Dockerfile.sandbox for agent execution. Native apps (macOS SwiftUI menu bar with Sparkle updates, iOS, Android Kotlin/Gradle). Nix flakes, Fly.io, Render, Podman.
+  docs: >
+    Mintlify-hosted at docs.openclaw.ai. docs/ covers channels (31 docs),
+    plugins (SDK, building, testing, migration), gateway (protocol, bridge),
+    concepts (architecture, models, failover), installation, CLI reference,
+    debugging. AGENTS.md/CLAUDE.md at each module boundary with progressive
+    disclosure. SECURITY.md is 324 lines.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 3
+  maturity: production
+  innovation:
+    highlights:
+      - Prompt-cache stability as first-class correctness concern with boundary tests
+      - Architecture boundary enforcement via programmatic test scanning (14+ files)
+      - Plugin SDK with 109 working extensions and CI-enforced boundary
+      - Native iOS/Android/macOS apps with tool-approval via push notifications
+      - Session key routing model (per-DM/group/thread/guild)
+  practical_utility:
+    rating: high
+    target_user: Technically inclined individual wanting a personal AI assistant bridging multiple messaging channels with real task execution. Single-operator trust boundary.
+  vendor_lock_in: moderate
+  red_flags:
+    - Vendor concentration risk — core shaped around Anthropic/Claude despite multi-provider support; prompt references Claude-specific features
+    - Single-operator trust model limits multi-tenant use cases
+    - Exec sandbox defaults to off — host-level command execution is default behavior
+    - Monolith scale — 459k LOC, 93 src/ directories, 70 root dependencies; sustainability depends on 15+ maintainer team staying engaged
+  summary: >
+    A serious, production-grade personal AI gateway that bridges "chat with an AI"
+    and "AI that operates your digital life across every messaging channel."
+    Consistently high code quality, unusually thoughtful security posture, and
+    innovations like prompt-cache stability and architecture boundary testing show
+    deep engineering maturity. Main risk is the scale of the monolith — sustained
+    maintainability depends on the team and boundary tests holding architecture together.

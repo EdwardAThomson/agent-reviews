@@ -1,0 +1,120 @@
+name: OpenHands
+slug: openhands
+category: coding
+review: reviews/coding/openhands.md
+status: active
+
+identity:
+  repo: https://github.com/OpenHands/OpenHands
+  commit: e9067237f2a3855a6eb82a56fe68d4a92cf681ba
+  commit_date: 2026-04-10
+  review_date: 2026-04-10
+  language: [Python, TypeScript]
+  license: MIT
+  loc: null
+  files: 489
+  dependencies:
+    direct: 90
+    notes: "includes kubernetes, boto3, google-cloud-aiplatform, playwright, redis, sqlalchemy"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    The most feature-complete open-source AI software development platform —
+    CodeAct paradigm, Docker/K8s sandboxing, 77.6% SWE-Bench, web UI, CLI,
+    enterprise edition. Formerly OpenDevin.
+  notable_features:
+    - CodeAct paradigm unifying agent actions into code (published paper)
+    - 77.6% SWE-Bench result — among highest publicly reported
+    - Six agent types (CodeAct, Browsing, VisualBrowsing, Loc, Readonly, Dummy)
+    - 8+ condensation strategies for context window management
+    - Issue resolver across 6 git providers (GitHub, GitLab, Bitbucket, Bitbucket DC, Azure DevOps, Forgejo)
+    - Microagents — markdown behavioral overlays
+
+capabilities:
+  architecture:
+    pattern: Controller-Agent-Runtime with V0/V1 split
+    summary: >
+      run_controller() wires AgentController, Agent, Runtime, Memory. V0 server
+      (FastAPI + Socket.IO) being phased out; V1 server with clean REST API;
+      V1 extracts agentic core into separate openhands-sdk package. 210 of 489
+      files tagged Legacy-V0.
+  llm_integration:
+    providers: null
+    gateway: litellm
+    provider_list: [openai, anthropic, gemini, bedrock, groq, deepseek]
+    auth: [api_key]
+    notes: Centralized in openhands/llm/llm.py wrapping litellm. Model-specific feature detection via glob patterns. LLMRegistry manages instances per service ID with model routing and retry logic.
+  tool_calling:
+    pattern: typed Action/Observation pairs parsed from LLM tool calls
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [execute_bash, str_replace_editor, ipython, browser, think, finish, condensation_request, task_tracker]
+    notes: execute_bash is persistent shell; str_replace_editor via openhands-aci; browser via BrowserGym + Playwright; MCP integration via fastmcp for dynamic external tool registration.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: false
+    vector_store: false
+    notes: StateTracker persists via FileStore (local/S3/GCS). 8+ condenser implementations (NoOp, ConversationWindow, RecentEvents, AmortizedForgetting, LLMSummarizing, LLMAttention, BrowserOutput, ObservationMasking, PipelineCondenser). ConversationMemory transforms event streams with Anthropic cache breakpoints.
+  orchestration:
+    pattern: event-driven controller with agent delegation
+    sub_agents: true
+    plan_mode: false
+    notes: CodeActAgent can delegate to BrowsingAgent via AgentDelegateAction. StuckDetector identifies loops. Enterprise includes solvability classifier for issue triage.
+  io: [cli, web-ui, rest-api, mcp-server, headless]
+  testing:
+    framework: pytest (async, coverage, parallel, Playwright, timeouts, forked)
+    file_count: null
+    faux_provider: false
+    coverage_signal: benchmark infra in separate OpenHands/benchmarks repo (SWE-bench, WebArena, MiniWob). Enterprise has 100+ test files. Unit tests outside openhands/ package — open-source core coverage unclear.
+  security:
+    default_bash_sandbox: true
+    approval_gate: confirmation_mode pauses for user approval; ActionSecurityRisk levels
+    credential_storage: V1 adds JWT auth and session auth for sandboxes
+    notes: >
+      Pluggable SecurityAnalyzer — InvariantAnalyzer (policy engine in Docker
+      sidecar), GrayswanAnalyzer, LLMAnalyzer. Docker sandbox with configurable
+      user IDs, network policies, host network controls.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "docker run docker.all-hands.dev/all-hands-ai/openhands (primary)"
+    binary: false
+    docker: true
+    platforms: [linux, macos, windows]
+    notes: Multi-stage Dockerfile building frontend + backend. Sandbox from Jinja2-templated Dockerfile. Kubernetes via dedicated runtime and config. Third-party clouds (Modal, E2B, Runloop, Daytona). Enterprise self-hosting on K8s with Helm.
+  docs: >
+    README links to external docs at docs.openhands.dev. Inline READMEs in
+    key directories. Jinja2 prompt templates as executable documentation.
+    30+ markdown microagent definitions. V0 deprecation headers on every
+    legacy file provide migration guidance.
+
+opinions:
+  ratings:
+    code_quality: 3.5
+    maintainability: 3
+  maturity: production
+  innovation:
+    highlights:
+      - CodeAct paradigm — unifying agent actions into code (published paper)
+      - 8-strategy condenser pipeline for context window management
+      - Microagents/skills as markdown behavioral overlays
+      - Issue resolver across 6 git providers
+      - 77.6% SWE-Bench — among highest publicly reported
+  practical_utility:
+    rating: very high
+    target_user: Teams needing a complete AI coding platform today — real sandbox execution, web browsing, file editing, issue resolution across multiple git providers.
+  vendor_lock_in: none
+  red_flags:
+    - V0/V1 limbo — 210 legacy files tagged for removal but still contain active production logic, removal deadline slipped
+    - Dependency bloat — ~90+ direct deps including kubernetes, boto3, GCP, playwright, redis, sqlalchemy
+    - Test location unclear — unit tests appear outside openhands/ package, open-source core coverage hard to assess
+    - Pinned openai==2.8.0 due to litellm incompatibility, blocking newer OpenAI features
+  summary: >
+    The most feature-complete open-source AI software development platform, with
+    genuine research contributions (CodeAct paper, 77.6% SWE-Bench), production-grade
+    infrastructure (Docker/K8s sandboxing, enterprise RBAC, multi-provider LLM), and
+    active community. Primary weakness is V0-to-V1 migration leaving the codebase in
+    transitional state with nearly half the files marked for deletion. Substantial
+    value for teams needing an AI coding agent today.

@@ -1,0 +1,125 @@
+name: Nanobot
+slug: nanobot
+category: general-purpose
+review: reviews/general-purpose/nanobot.md
+status: active
+
+identity:
+  repo: https://github.com/HKUDS/nanobot
+  commit: 82dec12f6641fac66172fbf9337a39a674629c6e
+  commit_date: 2026-04-07
+  review_date: 2026-04-07
+  language: [Python]
+  license: MIT
+  loc: 26500
+  files: 237
+  dependencies:
+    direct: 32
+    notes: null
+  commits: 1748
+  contributors: 264
+  stated_purpose: >
+    Ultra-lightweight personal AI agent framework inspired by OpenClaw —
+    research-ready Python codebase with 12 channels, 25+ providers, and
+    layered memory with Dream consolidation.
+  notable_features:
+    - Dream memory consolidation (two-phase LLM analysis + agent-driven edits)
+    - Heartbeat service with virtual tool calls for autonomous operation
+    - 12 channels including WeChat, WeCom, Feishu, DingTalk, QQ for Asian markets
+    - 25 ProviderSpec registry entries with comptime duplicate detection
+    - Bubblewrap sandboxing with multi-layer exec security
+    - OpenAI-compatible API endpoint server
+
+capabilities:
+  architecture:
+    pattern: layered async with MessageBus decoupling
+    summary: >
+      BaseChannel → MessageBus → AgentLoop._dispatch → AgentRunner.run →
+      LLMProvider → tool execution → MessageBus outbound → ChannelManager →
+      BaseChannel.send. Channels auto-discovered via pkgutil + entry_points.
+  llm_integration:
+    providers: 25
+    gateway: custom
+    provider_list: [openai, anthropic, azure-openai, openai-codex, github-copilot, dashscope, zhipu, moonshot, minimax, stepfun, xiaomi-mimo, volcengine, qianfan, siliconflow]
+    auth: [api_key]
+    notes: Abstract LLMProvider base with retry, transient-error detection, retry-after parsing, heartbeat-aware sleep. Five concrete backends wrapping the 25 ProviderSpec entries. Jinja2 templates for prompts with autoescape=False.
+  tool_calling:
+    pattern: Tool subclasses with JSON Schema + MCP prefix wrapping
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [ReadFile, WriteFile, EditFile, ListDir, Glob, Grep, Exec, WebSearch, WebFetch, Message, Spawn, Cron]
+    notes: Tools register via @tool_parameters decorator. MCP via stdio/SSE/streamableHttp transports, remote tools wrapped as MCPToolWrapper with mcp_ prefix. Concurrent tool batching via _partition_tool_batches based on concurrency_safe property.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: false
+    vector_store: false
+    notes: >
+      Three-layer — MemoryStore (MEMORY.md + SOUL.md + USER.md + history.jsonl),
+      Consolidator (token-budget summarization at user-turn boundary), Dream
+      (two-phase LLM analysis then AgentRunner-driven surgical edits with
+      dulwich git-backed auto-commit).
+  orchestration:
+    pattern: async MessageBus consumer with subagent spawning and heartbeat
+    sub_agents: true
+    plan_mode: false
+    notes: AgentLoop runs as async consumer with per-session serialization + cross-session concurrency (default max 3). SubagentManager supports SpawnTool-triggered background tasks with restricted ToolRegistry. HeartbeatService periodic wake-ups. CronService with one-shot/interval/cron-expression schedules.
+  io: [telegram, discord, slack, whatsapp, feishu, dingtalk, wecom, weixin, email, matrix, qq, mochat, openai-api]
+  testing:
+    framework: pytest + pytest-asyncio
+    file_count: 85
+    faux_provider: false
+    coverage_signal: exec security tests verify SSRF via DNS mocking; runner tests mock providers, verify tool call chaining, reasoning preservation, checkpoint behavior. Primarily unit tests with heavy mocking.
+  security:
+    default_bash_sandbox: false
+    approval_gate: regex deny patterns (rm -rf, fork bombs, dd, shutdown)
+    credential_storage: env-based, _build_env does not inherit parent environment
+    notes: >
+      Bubblewrap sandbox (binds system dirs read-only, tmpfs for config,
+      workspace read-write). ExecTool regex deny patterns + path traversal
+      detection. SSRF protection blocks RFC 1918, link-local, CGN. Docker
+      drops all caps except SYS_ADMIN (needed for bwrap namespaces).
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "nanobot onboard (interactive TUI wizard) + Docker"
+    binary: false
+    docker: true
+    platforms: [linux, macos]
+    notes: Dockerfile on uv:python3.12-bookworm-slim with Node.js 20 (WhatsApp bridge), bubblewrap, git, openssh-client. Non-root user uid 1000. Docker Compose defines nanobot-gateway, nanobot-api (localhost), nanobot-cli.
+  docs: >
+    Comprehensive README with changelog and OpenClaw comparison. Three docs —
+    CHANNEL_PLUGIN_GUIDE.md, MEMORY.md architecture, PYTHON_SDK.md.
+    COMMUNICATION.md, CONTRIBUTING.md, SECURITY.md. Inline quality above
+    average; Jinja2 templates self-documenting.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 4
+  maturity: alpha
+  innovation:
+    highlights:
+      - Dream memory consolidation — two-phase LLM analysis + agent-driven edits to living documents
+      - Heartbeat service with virtual tool calls for autonomous operation design
+      - Asian messaging platform coverage (WeChat, WeCom, Feishu, DingTalk, QQ)
+      - ProviderSpec registry — adding a provider is a single dataclass
+      - Git-backed memory versioning via dulwich
+  practical_utility:
+    rating: moderate
+    target_user: Non-English-speaking developers on Asian messaging platforms; researchers wanting a clean, extensible Python base.
+  vendor_lock_in: none
+  red_flags:
+    - 386 bare except Exception catches across 56 files (some silently swallow errors)
+    - Sandbox is thin — bubblewrap binds workspace read-write, network unrestricted, ExecTool regex trivially bypassable
+    - Environment not fully isolated — _build_env uses `bash -l` sourcing user profile, potentially leaking state
+    - SDK facade incomplete — Nanobot.run mutates private attributes, returns empty hardcoded fields
+    - '"99% fewer lines" claim misleading — core_agent_lines.sh script excludes substantial directories'
+  summary: >
+    A well-architected alpha-stage personal AI agent with genuinely innovative memory
+    consolidation (Dream) and strong multi-channel support, particularly for Chinese
+    messaging platforms. Code quality above average with clean abstractions and
+    solid test coverage. Sandboxing has real gaps and the "99% fewer lines" claim is
+    misleading, but as a research base or personal assistant for the Asian messaging
+    ecosystem, it fills a legitimate niche.

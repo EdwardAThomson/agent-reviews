@@ -1,0 +1,123 @@
+name: Hermes Agent
+slug: hermes-agent
+category: general-purpose
+review: reviews/general-purpose/hermes-agent.md
+status: active
+
+identity:
+  repo: https://github.com/NousResearch/hermes-agent
+  commit: 67fece1176d59481f00308ce801d17a474923006
+  commit_date: 2026-04-13
+  review_date: 2026-04-13
+  language: [Python, TypeScript, Shell, Nix]
+  license: MIT
+  loc: 385000
+  files: 852
+  dependencies:
+    direct: 18
+    notes: "18 core + 15 optional extras (modal, messaging, voice, MCP, RL)"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    The self-improving general-purpose agent from Nous Research — 385k LOC Python
+    monolith with a learning loop that creates skills from experience, 54 built-in
+    tools, 20+ messaging platforms, pluggable memory providers, and RL training
+    integration.
+  notable_features:
+    - Self-improving skill loop — agent reviews trajectories to create reusable skills
+    - Trajectory compression for RL training integration (Atropos)
+    - 54 built-in tools with self-registering registry
+    - 20+ messaging platforms via gateway (Telegram, Discord, Slack, WhatsApp, Signal, Matrix, etc.)
+    - Pluggable memory providers (Honcho, Mem0, Hindsight, 5 others)
+    - Six terminal backends (local, Docker, SSH, Modal, Daytona, Singularity)
+
+capabilities:
+  architecture:
+    pattern: single-repo Python monolith with god-files
+    summary: >
+      run_agent.py (10,613 lines) contains AIAgent class and main conversation
+      loop. cli.py (9,967 lines) wraps agent in prompt_toolkit TUI.
+      hermes_cli/ has 50+ modules. hermes_state.py provides SQLite persistence
+      with WAL mode and FTS5 search.
+  llm_integration:
+    providers: null
+    gateway: custom
+    provider_list: [anthropic, openai, openrouter, ollama, vllm]
+    auth: [api_key, oauth]
+    notes: Provider auto-detected from base URL patterns. Native Anthropic SDK for Claude, OpenAI SDK for everything else. Automatic prompt caching with cache_control breakpoint injection. Reasoning tokens preserved across providers.
+  tool_calling:
+    pattern: self-registering tool registry with toolsets
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [memory, delegate_task, shell, file_edit, web, browser, vision, skills, session_search]
+    notes: 54 tool files in tools/. Toolsets group tools by use case (web, terminal, file, browser, vision, skills, delegation) with composite sets per platform. MCP client connects to external servers; MCP server exposes 10 conversation-management tools. Plugin system via ~/.hermes/plugins/.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: true
+    vector_store: true
+    notes: Three-layer — Session DB (SQLite + FTS5), Built-in memory (~/.hermes/memories/ with MEMORY.md + USER.md + threat scanning), Pluggable memory providers. Context fencing wraps recalled memory in <memory-context> tags.
+  orchestration:
+    pattern: iteration-budgeted agent loop with subagent spawning
+    sub_agents: true
+    plan_mode: false
+    notes: Default 90-iteration budget shared parent+subagents via thread-safe IterationBudget. delegate_task creates fresh AIAgent instances. Context compression at 50% context limit. Cron scheduler runs jobs every 60s with delivery to 13+ platforms.
+  io: [cli, telegram, discord, slack, whatsapp, signal, matrix, mattermost, email, sms, wechat, wecom, feishu, dingtalk, bluebubbles, openai-api, mcp, acp]
+  testing:
+    framework: pytest (9.x) + pytest-asyncio + pytest-xdist
+    file_count: 533
+    faux_provider: false
+    coverage_signal: 3299 test functions; tests/tools/ has 475+ tool-specific; integration tests for batch runner, checkpoint resumption, Daytona/Modal terminals, voice flows. No visible CI/CD workflow files.
+  security:
+    default_bash_sandbox: false
+    approval_gate: pattern-based command approval (35+ regex patterns) + smart LLM approval for low-risk
+    credential_storage: env var based
+    notes: >
+      Three approval modes (per-session, gateway-blocking, smart LLM). Write
+      deny list blocks system files. Unicode NFKC normalization defeats
+      fullwidth obfuscation. ANSI escape stripping. Optional Tirith subprocess
+      wrapper. Memory tool scans for prompt injection before system prompt
+      injection.
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "setup-hermes.sh (shell installer) or Docker or Nix"
+    binary: false
+    docker: true
+    platforms: [linux, macos, android]
+    notes: Multi-stage Docker build (Python 3.13, Debian Trixie) with non-root user (UID 10000). Nix flake with pyproject-nix and uv2nix. Modal for serverless. Supports Daytona and Singularity (HPC). Termux-specific bundle for Android.
+  docs: >
+    README covers features, install, CLI reference, self-improving capabilities.
+    CONTRIBUTING.md (26k) details priorities. docs/ includes ACP setup, Honcho
+    spec, architecture, migration guides. Seven RELEASE_v*.md files.
+    AGENTS.md (20k) for AI-assisted development.
+
+opinions:
+  ratings:
+    code_quality: 2.5
+    maintainability: 2
+  maturity: beta
+  innovation:
+    highlights:
+      - Self-improving skill loop creates reusable skills from agent trajectories
+      - Trajectory compression for RL training integration (Atropos)
+      - Memory threat scanning — prompt injection detection before system prompt inclusion
+      - 20+ messaging platform gateway with voice transcription
+      - Pluggable memory providers (Honcho, Mem0, Hindsight, 5 others)
+  practical_utility:
+    rating: high
+    target_user: Technically inclined individual wanting a personal AI assistant that learns over time, accessible from any messaging platform. ML researchers fine-tuning models on agent trajectories.
+  vendor_lock_in: none
+  red_flags:
+    - God files — run_agent.py (10,613 lines), cli.py (9,967 lines), hermes_cli modules exceeding 100k lines each
+    - Known CVEs in pinned dependencies — requests (CVE-2026-25645), PyJWT (CVE-2026-32597) noted in comments but still pinned
+    - No visible CI/CD — .github/ contains no workflow files in shallow clone
+    - OpenClaw migration tooling suggests fork/successor relationship not clearly documented
+  summary: >
+    A genuinely innovative agent with the self-improving skill loop and RL training
+    integration setting it apart from the field. 20+ messaging platforms, pluggable
+    memory providers, 54 built-in tools make it functionally comprehensive. However,
+    core architecture suffers from extreme file-size concentration that undermines
+    code quality, maintainability, and contribution accessibility. Unique capabilities
+    for users who value agents that learn from experience.

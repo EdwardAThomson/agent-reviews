@@ -1,0 +1,130 @@
+name: NullClaw
+slug: nullclaw
+category: general-purpose
+review: reviews/general-purpose/nullclaw.md
+status: active
+
+identity:
+  repo: https://github.com/nullclaw/nullclaw
+  commit: d55073a5b51c3ffeb176ad51d0fb1fb57411b3d0
+  commit_date: 2026-04-05
+  review_date: 2026-04-05
+  language: [Zig]
+  license: MIT
+  loc: 237000
+  files: 346
+  dependencies:
+    direct: 3
+    notes: "sqlite3 vendored (verified by build-time SHA256), websocket, wasm3"
+  commits: 2066
+  contributors: 85
+  stated_purpose: >
+    The smallest fully autonomous AI assistant infrastructure — a static Zig
+    binary (678KB) that boots in <2ms with 50+ providers, 19 channels, and
+    multi-layer sandboxing.
+  notable_features:
+    - 678KB static binary, <2ms startup, ~1MB peak RSS
+    - Vtable-driven architecture uniformly applied to all subsystems
+    - Comptime provider table with 95 entries and duplicate-name detection
+    - 42 tool files including I2C/SPI hardware I/O
+    - 10 memory engine implementations (SQLite, Markdown, LRU, PG, Redis, ClickHouse, LanceDB, API)
+    - Cross-compiles to x86_64/ARM64/RISC-V for edge deployment
+    - 6395 test declarations with enforced zero-leak guarantee
+
+capabilities:
+  architecture:
+    pattern: vtable-driven single-binary with 5 init phases
+    summary: >
+      259 Zig source files organized in Core → Agent → Networking → Extensions
+      → Hardware. Every major subsystem uses ptr/vtable for runtime polymorphism.
+      Channels connect via event bus (two blocking ring-buffer queues).
+  llm_integration:
+    providers: 95
+    gateway: custom
+    provider_list: [anthropic, openai, ollama, gemini, vertex, openrouter, claude-cli, codex-cli, gemini-cli, groq, mistral, deepseek, xai, cerebras, perplexity, together, fireworks, hugging-face, moonshot, glm, minimax, qwen, doubao, bedrock, cloudflare, nvidia-nim, lm-studio, vllm, llama-cpp, sglang]
+    auth: [api_key, oauth]
+    notes: Common Provider vtable. 9 core implementations plus comptime lookup table of 95 CompatProvider entries (OpenAI-compatible). prompt.zig assembles from AGENTS.md/SOUL.md/TOOLS.md. reliable.zig adds retry with rate-limit detection and provider fallback chains.
+  tool_calling:
+    pattern: Tool vtable with comptime ToolVTable(T) auto-generation
+    mcp_support: true
+    mcp_stance: supported
+    builtin_tools: [shell, file-crud, git, http, web-search, web-fetch, browser, screenshot, memory-crud, cron, delegate, subagent-spawn, calculator, image-analysis, i2c, spi, composio, pushover]
+    notes: 42 tool implementation files. Dispatcher parses native OpenAI JSON first, then XML <tool_call> fallback. allTools() conditionally registers based on config flags.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: false
+    vector_store: true
+    notes: >
+      Four-layer architecture — Primary Store (10 engines including SQLite+FTS5,
+      Markdown, LRU, PG, Redis, ClickHouse, LanceDB, API), Retrieval (hybrid
+      with RRF merge, temporal decay, MMR, query expansion, LLM rerank), Vector
+      Plane (embeddings from OpenAI/Gemini/Voyage/Ollama; SQLite shared/sidecar,
+      Qdrant, pgvector), Lifecycle (response/semantic caching, hygiene,
+      snapshots, rollout, migration, summarization).
+  orchestration:
+    pattern: single-agent with subagent spawning + A2A protocol
+    sub_agents: true
+    plan_mode: false
+    notes: Core turn() with max 25 tool-call iterations. SubagentManager spawns background tasks in separate OS threads with restricted tool sets (no message/spawn/delegate), max 4 concurrent. A2A v0.3.0 over JSON-RPC with full task state machine.
+  io: [cli, telegram, discord, slack, whatsapp, matrix, mattermost, irc, imessage, email, lark-feishu, dingtalk, wechat, wecom, line, teams, maixcam, web, qq, onebot, nostr, max]
+  testing:
+    framework: zig test with std.testing.allocator
+    file_count: 241
+    faux_provider: false
+    coverage_signal: 6395 test declarations (exceeds README's 5300+ claim); all tests use leak-detecting allocator; contract tests verify all memory backends satisfy identical vtable invariants; CI runs Ubuntu x86_64, macOS aarch64, Windows x86_64.
+  security:
+    default_bash_sandbox: true
+    approval_gate: SecurityPolicy autonomy levels (read_only/supervised/full/yolo)
+    credential_storage: ChaCha20-Poly1305 AEAD + HMAC-SHA256, 90-day key rotation
+    notes: >
+      Six security subsystems — SecurityPolicy (command risk classification),
+      AuditLogger, PairingGuard (constant-time comparison), SecretStore (AEAD
+      encryption, HMAC signatures, key rotation), Sandbox (5 backends —
+      Firejail/Bubblewrap/Docker/Landlock/Noop), RateTracker (sliding window).
+      Landlock backend is a stub (returns false from isAvailable).
+  repo_trust_surfaces:
+    risk_level: null
+    notes: Not collected in original review (pre-2026-04-21 methodology).
+  deployment:
+    install: "docker run ghcr.io/nullclaw/... or zig build"
+    binary: true
+    docker: true
+    platforms: [linux, macos, windows, riscv64]
+    notes: Multi-stage Docker (Alpine 3.23 builder cross-compiling static musl binary with ReleaseSmall). Selective compilation via build flags. CI targets 7 platforms including linux-riscv64. Nix flake. CalVer versioning (2026.4.4).
+  docs: >
+    Bilingual en/zh docs with 11 files each (architecture, commands, config,
+    development, channels, gateway API, installation, security, Termux, usage).
+    Every module begins with //! doc comments. CLAUDE.md has module init order,
+    subsystem descriptions, dependency rules, config system, Zig 0.15.2 gotchas,
+    testing conventions.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 3.5
+  maturity: beta
+  innovation:
+    highlights:
+      - Comptime provider table (95 entries with compile-time duplicate detection)
+      - Vtable architecture uniformly applied to every subsystem
+      - Vendored SQLite with build-time SHA256 verification (rare supply-chain measure)
+      - I2C/SPI tools and MaixCam channel — genuine embedded intent
+      - 6395 test declarations with enforced zero-leak guarantee
+  practical_utility:
+    rating: moderate
+    target_user: AI agent on constrained hardware — Raspberry Pi, $5 boards, edge devices. Also viable as a multi-channel hub.
+  vendor_lock_in: none
+  red_flags:
+    - Landlock is non-functional — security/landlock.zig returns false from isAvailable with honest comment about not advertising false security
+    - Other sandbox backends (firejail/bubblewrap/docker) wrap external tools, not in-process enforcement
+    - Two hardware subcommands unimplemented (flash, monitor)
+    - Teams webhook JWT validation has a TODO
+    - '"3 dependencies" claim understates reality — vendored SQLite is ~6MB of C source'
+  summary: >
+    An impressively engineered Zig codebase delivering a genuinely small, fast,
+    multi-channel AI agent with real embedded hardware support. High code quality,
+    consistent architecture, substantial test coverage with enforced zero-leak
+    guarantees. Main risks — Zig's niche status constraining contributors,
+    non-functional Landlock, and a few incomplete features at the edges. The most
+    serious contender for running an AI agent on constrained hardware.
