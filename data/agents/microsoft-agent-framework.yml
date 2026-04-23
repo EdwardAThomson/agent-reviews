@@ -4,6 +4,10 @@ category: frameworks
 review: reviews/frameworks/microsoft-agent-framework.md
 status: active
 
+design_philosophy:
+  approach: "Enterprise dual-language parity — Python + .NET co-designed, 23 ADRs, 5 orchestration builders, deep Azure"
+  tradeoff: "Azure ecosystem gravity, 27 packages per language, most non-core providers still beta"
+
 identity:
   repo: https://github.com/microsoft/agent-framework
   commit: 485af07b8c21896b7f24a0313b5a226b3bd711f8

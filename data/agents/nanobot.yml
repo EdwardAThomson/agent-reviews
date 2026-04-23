@@ -4,6 +4,10 @@ category: general-purpose
 review: reviews/general-purpose/nanobot.md
 status: active
 
+design_philosophy:
+  approach: "Research-friendly minimal framework — Dream memory consolidation, 12 channels, Asian messaging focus"
+  tradeoff: "Alpha maturity, 386 bare except catches, thin sandbox, APIs still breaking"
+
 identity:
   repo: https://github.com/HKUDS/nanobot
   commit: 82dec12f6641fac66172fbf9337a39a674629c6e

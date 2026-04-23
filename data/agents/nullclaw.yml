@@ -4,6 +4,10 @@ category: general-purpose
 review: reviews/general-purpose/nullclaw.md
 status: active
 
+design_philosophy:
+  approach: "Performance-obsessed Zig binary — 678KB static, <2ms startup, vtable architecture, 95 providers"
+  tradeoff: "Zig is niche (small contributor pool), Landlock backend is a stub, some hardware features incomplete"
+
 identity:
   repo: https://github.com/nullclaw/nullclaw
   commit: d55073a5b51c3ffeb176ad51d0fb1fb57411b3d0

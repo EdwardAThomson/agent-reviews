@@ -4,6 +4,10 @@ category: coding
 review: reviews/coding/gemini-cli.md
 status: active
 
+design_philosophy:
+  approach: "Google-scale polish — React/Ink TUI, local Gemma classifier for model routing, platform-native sandboxing"
+  tradeoff: "Gemini-only vendor lock-in, Clearcut telemetry to Google, Google discontinuation risk"
+
 identity:
   repo: https://github.com/google-gemini/gemini-cli
   commit: 5fc8fea8d762d67d3bff14d00307138faff0bca5

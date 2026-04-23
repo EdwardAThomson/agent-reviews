@@ -4,6 +4,10 @@ category: frameworks
 review: reviews/frameworks/gbrain.md
 status: active
 
+design_philosophy:
+  approach: "Contract-first markdown second-brain — single operations table generates CLI, MCP, and tools-json with parity tests"
+  tradeoff: "Alpha, 5 days old, single contributor, global mutable DB connection, stub features"
+
 identity:
   repo: https://github.com/garrytan/gbrain
   commit: 27eb87f1f43d2a3eefa41f2ab404237b4f615938

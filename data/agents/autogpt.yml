@@ -4,6 +4,10 @@ category: frameworks
 review: reviews/frameworks/autogpt.md
 status: active
 
+design_philosophy:
+  approach: "Commercial visual agent-builder platform — 92 blocks, marketplace, CoPilot meta-agent"
+  tradeoff: "PolyForm Shield license, 15+ Docker services, classic agent deprecated with known vulnerabilities"
+
 identity:
   repo: https://github.com/Significant-Gravitas/AutoGPT
   commit: ef477ae4b9ea1d6f06807306ed0fde80dbd615a3

@@ -4,6 +4,10 @@ category: frameworks
 review: reviews/frameworks/autogen.md
 status: maintenance
 
+design_philosophy:
+  approach: "Actor-model research framework — CloudEvents pub/sub, cross-language (.NET + Python), Magentic-One orchestrator"
+  tradeoff: "Maintenance mode, never reached 1.0, Microsoft directs new users to Agent Framework successor"
+
 identity:
   repo: https://github.com/microsoft/autogen
   commit: 027ecf0a379bcc1d09956d46d12d44a3ad9cee14

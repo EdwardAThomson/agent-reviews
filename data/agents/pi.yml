@@ -4,6 +4,10 @@ category: coding
 review: reviews/coding/pi.md
 status: active
 
+design_philosophy:
+  approach: "Minimal core, extend-don't-fork — 5-file agent loop, first-class extensions/skills, anti-MCP CLI-tools stance"
+  tradeoff: "No default bash sandbox, single primary author, opinionated philosophy won't suit everyone"
+
 identity:
   repo: https://github.com/badlogic/pi-mono
   commit: c6cef7c8060a19dd6571fda8b4a9625dd51d771f

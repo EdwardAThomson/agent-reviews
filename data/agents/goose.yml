@@ -4,6 +4,10 @@ category: coding
 review: reviews/coding/goose.md
 status: active
 
+design_philosophy:
+  approach: "Ambitious MCP-first platform — 25+ providers, 70+ extensions, multi-layer security pipeline, local inference"
+  tradeoff: "Security inspection disabled by default, 2000+ line core files, git-pinned patches, PostHog telemetry on"
+
 identity:
   repo: https://github.com/block/goose
   commit: 3f5277538d5f6df1a88faca5e77cecc0ee208ae1

@@ -32,6 +32,15 @@ data/
 | `review` | path | Relative path to the review markdown (e.g., `reviews/coding/pi.md`) |
 | `status` | enum | `active` \| `maintenance` \| `dormant` \| `deprecated` |
 
+### `design_philosophy` block
+
+Editorial one-liners that characterize the agent's core bet and its cost. Used for the Design Philosophy table in `tier1-overview.md`. These are deliberately short prose rather than facts — they come from the reviewer's synthesis, not mechanical extraction.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `approach` | string | One short phrase describing the core bet (e.g., "Maximalist personal-AI platform — 459k LOC, 20+ channels, 109 extensions, native apps") |
+| `tradeoff` | string | One short phrase describing the cost (e.g., "Huge monolith harder to audit, single-operator trust model") |
+
 ### `identity` block (Tier 1)
 
 | Field | Type | Notes |

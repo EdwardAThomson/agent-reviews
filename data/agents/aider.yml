@@ -4,6 +4,10 @@ category: coding
 review: reviews/coding/aider.md
 status: active
 
+design_philosophy:
+  approach: "Battle-tested terminal craft — tree-sitter repo map with PageRank, polymorphic edit formats, deep git integration"
+  tradeoff: "No sandboxing, 88% AI-written core, monolithic base_coder god class"
+
 identity:
   repo: https://github.com/Aider-AI/aider
   commit: f09d70659ae90a0d068c80c288cbb55f2d3c3755

@@ -4,6 +4,10 @@ category: coding
 review: reviews/coding/swe-agent.md
 status: maintenance
 
+design_philosophy:
+  approach: "Research-first Agent-Computer Interface — tool bundles, multiple output parsers, retry-and-review loops"
+  tradeoff: "Team declared it superseded by mini-SWE-agent; synchronous asyncio bridge is pragmatic but fragile"
+
 identity:
   repo: https://github.com/SWE-agent/SWE-agent
   commit: 0f4f3bba990e01ca8460b9963abdcd89e38042f2

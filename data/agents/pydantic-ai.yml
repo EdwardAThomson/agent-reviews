@@ -4,6 +4,10 @@ category: frameworks
 review: reviews/frameworks/pydantic-ai.md
 status: active
 
+design_philosophy:
+  approach: "Type-safe Python-first — generic Agent[DepsT, OutputT], ships Pydantic Evals, real-API recorded tests"
+  tradeoff: "Single-agent-first (no built-in multi-agent), 37+ optional dep groups, no server runtime, Logfire gravity"
+
 identity:
   repo: https://github.com/pydantic/pydantic-ai
   commit: 7f57f5d057437c9b60ef1f8b853e02961b2c80a0

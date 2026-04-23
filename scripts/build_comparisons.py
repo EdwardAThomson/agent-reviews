@@ -198,6 +198,20 @@ def render_tier1_overview(agents: list[dict[str, Any]]) -> str:
     out.append("---")
     out.append("")
 
+    # Design philosophy (editorial cross-cut)
+    out.append("## Design Philosophy")
+    out.append("")
+    out.append("| Agent | Approach | Tradeoff |")
+    out.append("|-------|----------|----------|")
+    for a in agents:
+        dp = a.get("design_philosophy") or {}
+        if not dp:
+            continue
+        out.append(f"| {a['name']} | {cell(dp.get('approach'))} | {cell(dp.get('tradeoff'))} |")
+    out.append("")
+    out.append("---")
+    out.append("")
+
     # Capabilities summary (cross-cut of tier2 data)
     out.append("## Capabilities Summary")
     out.append("")

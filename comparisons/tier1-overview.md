@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-04-22
+**Generated:** 2026-04-23
 **Source data:** [data/agents/](../data/agents/)
 
 ---
@@ -68,6 +68,36 @@
 | Plandex | 50k | 250 | — | — | — |
 | Pydantic AI | 253k | 509 | 6 | — | — |
 | SWE-agent | 11.4k | 60 | 22 | — | — |
+
+---
+
+## Design Philosophy
+
+| Agent | Approach | Tradeoff |
+|-------|----------|----------|
+| Aider | Battle-tested terminal craft — tree-sitter repo map with PageRank, polymorphic edit formats, deep git integration | No sandboxing, 88% AI-written core, monolithic base_coder god class |
+| AutoGen | Actor-model research framework — CloudEvents pub/sub, cross-language (.NET + Python), Magentic-One orchestrator | Maintenance mode, never reached 1.0, Microsoft directs new users to Agent Framework successor |
+| AutoGPT | Commercial visual agent-builder platform — 92 blocks, marketplace, CoPilot meta-agent | PolyForm Shield license, 15+ Docker services, classic agent deprecated with known vulnerabilities |
+| Cline | Safe-by-default comprehensiveness — 46 providers, human-in-the-loop approval, checkpoint system, MCP-first | 96 runtime deps, 3400-line Task god file, 6-8 files touched per new feature |
+| CLIO | Zero-dependency terminal purist — ~140 Perl modules, no CPAN, intent-based command analysis | GPL-3.0 limits corporate use, solo developer with AI-generated code, niche language |
+| Codex CLI | Enterprise-grade local coding — 91 Rust crates, multi-platform sandboxing, MITM network proxy | Deeper-than-advertised OpenAI coupling, 8k-line codex.rs god file, 194 external crates |
+| CrewAI | Intuitive multi-agent via role/goal/backstory + Crews/Flows duality — independent of LangChain | Reinvents infrastructure LangGraph gets right, large core files, commercial AMP platform gravity |
+| GBrain | Contract-first markdown second-brain — single operations table generates CLI, MCP, and tools-json with parity tests | Alpha, 5 days old, single contributor, global mutable DB connection, stub features |
+| Gemini CLI | Google-scale polish — React/Ink TUI, local Gemma classifier for model routing, platform-native sandboxing | Gemini-only vendor lock-in, Clearcut telemetry to Google, Google discontinuation risk |
+| Goose | Ambitious MCP-first platform — 25+ providers, 70+ extensions, multi-layer security pipeline, local inference | Security inspection disabled by default, 2000+ line core files, git-pinned patches, PostHog telemetry on |
+| Hermes Agent | Self-improving agent with RL-training integration — 54 tools, 20+ messaging channels, pluggable memory providers | 10k-line run_agent.py and cli.py god files, known CVEs in pinned deps, no visible CI |
+| LangGraph | Pregel superstep model applied to LLM agents — durable, resumable, time-travel-debuggable | Closed-source server runtime, LangSmith ecosystem gravity, steeper learning curve |
+| memU | Memory-first framework — tiered retrieval with LLM sufficiency checks, salience-aware ranking | Not standalone (needs an agent to wrap it), late alpha despite v1.5.1 label, Rust stub, thin tests |
+| Microsoft Agent Framework | Enterprise dual-language parity — Python + .NET co-designed, 23 ADRs, 5 orchestration builders, deep Azure | Azure ecosystem gravity, 27 packages per language, most non-core providers still beta |
+| Nanobot | Research-friendly minimal framework — Dream memory consolidation, 12 channels, Asian messaging focus | Alpha maturity, 386 bare except catches, thin sandbox, APIs still breaking |
+| NanoClaw | Container-isolated minimalism — 3 deps, 8.5k LOC, per-group Docker sandbox, skill-based extension | Claude-only vendor lock-in, bypassPermissions inside container, polling everywhere |
+| NullClaw | Performance-obsessed Zig binary — 678KB static, <2ms startup, vtable architecture, 95 providers | Zig is niche (small contributor pool), Landlock backend is a stub, some hardware features incomplete |
+| OpenClaw | Maximalist personal-AI platform — 459k LOC, 20+ channels, 109 extensions, native iOS/Android/macOS apps | Huge monolith harder to audit, single-operator trust model, exec sandbox defaults off |
+| OpenHands | Research-paper-grade AI dev platform — CodeAct paradigm, Docker/K8s sandboxing, 77.6% SWE-Bench, 6 agent types | V0/V1 migration limbo (210 legacy files), 90+ deps, enterprise directory proprietary |
+| Pi | Minimal core, extend-don't-fork — 5-file agent loop, first-class extensions/skills, anti-MCP CLI-tools stance | No default bash sandbox, single primary author, opinionated philosophy won't suit everyone |
+| Plandex | Plan/branch/sandbox for large projects — 9-role model packs, cumulative diff review, staged planning-then-implementation | Cloud shut down Oct 2025, 6 test files, single maintainer, 6+ months inactive |
+| Pydantic AI | Type-safe Python-first — generic Agent[DepsT, OutputT], ships Pydantic Evals, real-API recorded tests | Single-agent-first (no built-in multi-agent), 37+ optional dep groups, no server runtime, Logfire gravity |
+| SWE-agent | Research-first Agent-Computer Interface — tool bundles, multiple output parsers, retry-and-review loops | Team declared it superseded by mini-SWE-agent; synchronous asyncio bridge is pragmatic but fragile |
 
 ---
 

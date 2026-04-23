@@ -4,6 +4,10 @@ category: coding
 review: reviews/coding/openhands.md
 status: active
 
+design_philosophy:
+  approach: "Research-paper-grade AI dev platform — CodeAct paradigm, Docker/K8s sandboxing, 77.6% SWE-Bench, 6 agent types"
+  tradeoff: "V0/V1 migration limbo (210 legacy files), 90+ deps, enterprise directory proprietary"
+
 identity:
   repo: https://github.com/OpenHands/OpenHands
   commit: e9067237f2a3855a6eb82a56fe68d4a92cf681ba

@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-04-22
+**Generated:** 2026-04-23
 **Source data:** [data/agents/](../data/agents/)
 
 **Note:** These are subjective assessments backed by evidence from the source code. See individual reviews for detailed justifications.

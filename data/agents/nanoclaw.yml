@@ -4,6 +4,10 @@ category: general-purpose
 review: reviews/general-purpose/nanoclaw.md
 status: active
 
+design_philosophy:
+  approach: "Container-isolated minimalism — 3 deps, 8.5k LOC, per-group Docker sandbox, skill-based extension"
+  tradeoff: "Claude-only vendor lock-in, bypassPermissions inside container, polling everywhere"
+
 identity:
   repo: https://github.com/qwibitai/nanoclaw
   commit: 934f063aff5c30e7b49ce58b53b41901d3472a3e

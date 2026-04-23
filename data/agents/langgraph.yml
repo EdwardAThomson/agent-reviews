@@ -4,6 +4,10 @@ category: frameworks
 review: reviews/frameworks/langgraph.md
 status: active
 
+design_philosophy:
+  approach: "Pregel superstep model applied to LLM agents — durable, resumable, time-travel-debuggable"
+  tradeoff: "Closed-source server runtime, LangSmith ecosystem gravity, steeper learning curve"
+
 identity:
   repo: https://github.com/langchain-ai/langgraph
   commit: 6719d34023ced81382223407c665fd0980279eea

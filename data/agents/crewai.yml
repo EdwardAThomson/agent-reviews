@@ -4,6 +4,10 @@ category: frameworks
 review: reviews/frameworks/crewai.md
 status: active
 
+design_philosophy:
+  approach: "Intuitive multi-agent via role/goal/backstory + Crews/Flows duality — independent of LangChain"
+  tradeoff: "Reinvents infrastructure LangGraph gets right, large core files, commercial AMP platform gravity"
+
 identity:
   repo: https://github.com/crewAIInc/crewAI
   commit: 5b6f89fe64c9ba206417079d8c1ea5891db45f8b

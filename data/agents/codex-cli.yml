@@ -4,6 +4,10 @@ category: coding
 review: reviews/coding/codex-cli.md
 status: active
 
+design_philosophy:
+  approach: "Enterprise-grade local coding — 91 Rust crates, multi-platform sandboxing, MITM network proxy"
+  tradeoff: "Deeper-than-advertised OpenAI coupling, 8k-line codex.rs god file, 194 external crates"
+
 identity:
   repo: https://github.com/openai/codex
   commit: 8035cb03f1a5061d0342cb8fa3a10a18068ca683

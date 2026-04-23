@@ -4,6 +4,10 @@ category: general-purpose
 review: reviews/general-purpose/openclaw.md
 status: active
 
+design_philosophy:
+  approach: "Maximalist personal-AI platform — 459k LOC, 20+ channels, 109 extensions, native iOS/Android/macOS apps"
+  tradeoff: "Huge monolith harder to audit, single-operator trust model, exec sandbox defaults off"
+
 identity:
   repo: https://github.com/openclaw/openclaw
   commit: 77bdf2f44db5a9db480f36b06c8c1e143548a753

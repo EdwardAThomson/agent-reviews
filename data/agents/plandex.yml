@@ -4,6 +4,10 @@ category: coding
 review: reviews/coding/plandex.md
 status: dormant
 
+design_philosophy:
+  approach: "Plan/branch/sandbox for large projects — 9-role model packs, cumulative diff review, staged planning-then-implementation"
+  tradeoff: "Cloud shut down Oct 2025, 6 test files, single maintainer, 6+ months inactive"
+
 identity:
   repo: https://github.com/plandex-ai/plandex
   commit: e2d772072efadbe41d2946d97d79be55532dbab5

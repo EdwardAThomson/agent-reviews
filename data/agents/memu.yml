@@ -4,6 +4,10 @@ category: frameworks
 review: reviews/frameworks/memu.md
 status: active
 
+design_philosophy:
+  approach: "Memory-first framework — tiered retrieval with LLM sufficiency checks, salience-aware ranking"
+  tradeoff: "Not standalone (needs an agent to wrap it), late alpha despite v1.5.1 label, Rust stub, thin tests"
+
 identity:
   repo: https://github.com/NevaMind-AI/memU
   commit: 357aefc8012705bfde723f141d52f675fe712bed

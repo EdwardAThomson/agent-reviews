@@ -4,6 +4,10 @@ category: general-purpose
 review: reviews/general-purpose/hermes-agent.md
 status: active
 
+design_philosophy:
+  approach: "Self-improving agent with RL-training integration — 54 tools, 20+ messaging channels, pluggable memory providers"
+  tradeoff: "10k-line run_agent.py and cli.py god files, known CVEs in pinned deps, no visible CI"
+
 identity:
   repo: https://github.com/NousResearch/hermes-agent
   commit: 67fece1176d59481f00308ce801d17a474923006

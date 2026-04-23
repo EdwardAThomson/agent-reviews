@@ -4,6 +4,10 @@ category: coding
 review: reviews/coding/clio.md
 status: active
 
+design_philosophy:
+  approach: "Zero-dependency terminal purist — ~140 Perl modules, no CPAN, intent-based command analysis"
+  tradeoff: "GPL-3.0 limits corporate use, solo developer with AI-generated code, niche language"
+
 identity:
   repo: https://github.com/SyntheticAutonomicMind/CLIO
   commit: e0f3fc97eba5e12e40d33df7508e6b45d7b5a313

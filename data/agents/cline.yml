@@ -4,6 +4,10 @@ category: coding
 review: reviews/coding/cline.md
 status: active
 
+design_philosophy:
+  approach: "Safe-by-default comprehensiveness — 46 providers, human-in-the-loop approval, checkpoint system, MCP-first"
+  tradeoff: "96 runtime deps, 3400-line Task god file, 6-8 files touched per new feature"
+
 identity:
   repo: https://github.com/cline/cline
   commit: a0faf7c6778fda100c10af5f8686d9dfa30b3d53
