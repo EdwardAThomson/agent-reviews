@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-04-23
+**Generated:** 2026-07-12
 **Source data:** [data/agents/](../data/agents/)
 
 **Note:** These are subjective assessments backed by evidence from the source code. See individual reviews for detailed justifications.
@@ -27,7 +27,7 @@
 | [GBrain](../reviews/frameworks/gbrain.md) | 4/5 | alpha | 4/5 | moderate |
 | [Gemini CLI](../reviews/coding/gemini-cli.md) | 4/5 | beta | 4/5 | high |
 | [Goose](../reviews/coding/goose.md) | 4/5 | production | 3.5/5 | none |
-| [Hermes Agent](../reviews/general-purpose/hermes-agent.md) | 2.5/5 | beta | 2/5 | none |
+| [Hermes Agent](../reviews/general-purpose/hermes-agent.md) | 3/5 | beta | 3/5 | none |
 | [LangGraph](../reviews/frameworks/langgraph.md) | 4/5 | production | 4/5 | moderate |
 | [memU](../reviews/frameworks/memu.md) | 3.5/5 | alpha | 3/5 | moderate |
 | [Microsoft Agent Framework](../reviews/frameworks/microsoft-agent-framework.md) | 4.5/5 | production | 4/5 | moderate |
@@ -55,7 +55,7 @@
 | GBrain | Compiled truth + timeline knowledge model (mirrors intelligence analysis tradecraft); Three-tier chunking (recursive for speed, semantic with Savitzky-Golay smoothing, LLM-guided for high-value); Contract-first operations — single definition generates CLI, MCP, and tools-json with parity test; Hand-rolled Savitzky-Golay smoothing in semantic chunker; Git-to-brain incremental sync with ancestry validation |
 | Gemini CLI | Gemma classifier for local complexity-aware model routing; Platform-native sandboxing with OS-level integration (bwrap/seatbelt/Windows C#); FolderTrustDiscoveryService as supply-chain defense; Memory/perf regression baselines as committed JSON; A2A protocol support for inter-agent communication |
 | Goose | MCP-first extension architecture (70+ extensions via open protocol); Most sophisticated multi-layer security pipeline of any reviewed agent; Tool shim for non-tool-capable models; Integrated local inference (llama.cpp + Candle with Metal/CUDA); ACP for inter-agent communication; Recipes/skills for declarative task config |
-| Hermes Agent | Self-improving skill loop creates reusable skills from agent trajectories; Trajectory compression for RL training integration (Atropos); Memory threat scanning — prompt injection detection before system prompt inclusion; 20+ messaging platform gateway with voice transcription; Pluggable memory providers (Honcho, Mem0, Hindsight, 5 others) |
+| Hermes Agent | Self-improving skill loop creates reusable skills from agent trajectories; Kanban multi-agent fleet — durable work queue with pipelines/DAGs, retry, crash recovery, swarm topology; Declarative ProviderProfile registry (29 providers) with same-provider credential-failover pool; Mixture-of-Agents ensembling and trajectory compression for RL training (Atropos); Provenance-attested skill-bundle installs — content-hash-bound scan verdicts, trust-tiered force policy |
 | LangGraph | Pregel superstep model applied to LLM agents (borrowed from Google's Pregel 2010); First-class checkpointing with thread IDs — long-running workflows, time-travel, conversational memory as single primitive; Vector search in checkpoint backends (SQLite via sqlite-vec, Postgres via pgvector); Command-based control flow algebra for interrupts, parent-graph comm, dynamic routing; Send class for map-reduce fan-out native to the graph model |
 | memU | Tiered retrieval cascade with LLM sufficiency short-circuit; Principled salience scoring formula; "Memory as file system" structured ontology; Pluggable pipeline with revision tracking and requires/produces validation |
 | Microsoft Agent Framework | Dual-language Python + .NET co-designed parity (rare and significantly harder than single-language); Workflow source generators eliminate reflection from message routing at compile time; Capability protocols on chat clients (SupportsMCPTool etc.) as type-system-level provider features; Declarative agents in YAML with structured actions enable GitOps for agent config; 23 ADRs before 1.0 — enterprise architectural discipline; Tool approval as first-class message content type rather than callback convention; Durable Task Framework integration for multi-hour/multi-day orchestrations |
@@ -83,7 +83,7 @@
 | GBrain | Global mutable DB connection in db.ts — breaks under concurrent access; database_url in plaintext config contains password (0600 permissions help but it's still credentials on disk); Stub implementations — rewriteLinks is no-op (broken cross-references on rename), file_url returns fake URL, SQLite engine not implemented; No MCP rate limiting or auth — any MCP client can call mutating operations without throttling; Single contributor, 5 days old at review time — bus factor of 1 |
 | Gemini CLI | Complete Gemini vendor lock-in via @google/genai client — provider switch would require rewriting core abstractions; Google discontinuation risk (mitigated by Apache-2.0 and open-source code); Scheduler LegacyHack type alias and ink overridden to a non-upstream fork (@jrichman/ink); Clearcut telemetry sends data to Google — users should understand this |
 | Goose | Security inspection disabled by default — SECURITY_PROMPT_ENABLED=false, adversary inspector only runs if adversary.md exists; Dependency pinning to git revisions (opentelemetry, sacp) — fragile, depends on external git availability; PostHog telemetry enabled by default; users should verify opt-out; Several files exceed 2000 lines (agent.rs 2470, extension_manager.rs 2357, session_manager.rs 2163, goose-acp/server.rs 3265) |
-| Hermes Agent | God files — run_agent.py (10,613 lines), cli.py (9,967 lines), hermes_cli modules exceeding 100k lines each; Known CVEs in pinned dependencies — requests (CVE-2026-25645), PyJWT (CVE-2026-32597) noted in comments but still pinned; No visible CI/CD — .github/ contains no workflow files in shallow clone; OpenClaw migration tooling suggests fork/successor relationship not clearly documented |
+| Hermes Agent | God-files migrated to CLI/gateway/web — gateway/run.py (21k), web_server.py (17k), cli.py (16k), main.py (15k), tui_gateway/server.py (14k); Default unsandboxed local terminal backend — SECURITY.md names OS isolation as the only real boundary; Plaintext on-disk credentials (~/.hermes/.env + 0o600 auth.json), no OS keyring; One residual pinned CVE — requests==2.33.0 (CVE-2026-25645), annotated in-file; Resolved since April: no-CI gap (17 workflows + OSV/supply-chain gates), undocumented OpenClaw relationship (migration guide added), YOLO injection + TOCTOU race fixed |
 | LangGraph | Server runtime (langgraph-api) is closed-source and requires a license key — limits self-hosted flexibility; LangSmith ecosystem lock-in for observability, Studio visual debugger, managed deployment; langchain-core dependency churn — pinning to alpha versions in production-tagged packages creates upgrade friction; Pregel/channels/reducers/supersteps mental model has a steeper learning curve than simpler frameworks |
 | memU | Python 3.13+ requirement is aggressive with no 3.13-only features apparent; Rust extension is a no-op stub requiring a toolchain for zero benefit; No true end-to-end tests; test_inmemory.py requires live API key; Prompt injection surface on user-supplied memory content; numpy>=2.3.4 pin may reference non-existent version; langchain-core as hard dependency even when unused |
 | Microsoft Agent Framework | Azure ecosystem gravity — provider-agnostic in principle but investment signals all point to Microsoft managed services (Foundry, Copilot Studio, CosmosDB, Azure Functions, Purview, Azure Monitor); 27 packages per language — cognitive load for onboarding; Stable-classifier packages are only core, OpenAI, Foundry — rest are beta or alpha (Gemini); Dependency on Microsoft's strategic direction — AutoGen precedent; No canonical self-hosted deployment story for Python — devui is developer tool, not production server |
@@ -139,7 +139,7 @@
 | GBrain | moderate | Someone with a large markdown corpus (1000+ files) who uses an MCP-compatible AI agent and wants semantic search. |
 | Gemini CLI | high | Google-ecosystem developers wanting a free, well-integrated coding assistant with 1M-context models. |
 | Goose | very high | Teams or individuals wanting an extensible, provider-agnostic AI agent with production-grade sessions, security, and local inference. |
-| Hermes Agent | high | Technically inclined individual wanting a personal AI assistant that learns over time, accessible from any messaging platform. ML researchers fine-tuning models on agent trajectories. |
+| Hermes Agent | high | Technically inclined individual wanting a personal AI that learns over time, reachable from any messaging platform or a native desktop app; teams running collaborating agent fleets via Kanban; ML researchers fine-tuning on agent trajectories. |
 | LangGraph | high | Teams building serious stateful agents in Python that need durability, observability, resumability — multi-step workflows with human approval, conversational memory, multi-agent supervisor patterns, crash-safe checkpointing. |
 | memU | moderate | Developers building personal-memory-augmented agents who want more structure than a raw vector DB. |
 | Microsoft Agent Framework | high | .NET shops (no serious competition there), Azure-first organizations, and Python teams wanting LangGraph alternative with 1.0 stability. Official migration target for AutoGen users. |
@@ -197,7 +197,7 @@ The most ambitious open-source AI agent framework available, combining a perform
 
 ### Hermes Agent
 
-A genuinely innovative agent with the self-improving skill loop and RL training integration setting it apart from the field. 20+ messaging platforms, pluggable memory providers, 54 built-in tools make it functionally comprehensive. However, core architecture suffers from extreme file-size concentration that undermines code quality, maintainability, and contribution accessibility. Unique capabilities for users who value agents that learn from experience.
+Three months on, Hermes has grown from an innovative-but-rough research monolith (v0.8.0) into a far broader, better-engineered platform (v0.18.2): a declarative 29-provider registry with credential failover, a Kanban multi-agent fleet, native desktop and web UIs, a hardened security layer with an honest trust model, and a real CI/supply-chain apparatus. The self-improving skill loop and RL integration remain unique. The persistent caveat is architectural — the god-file problem migrated from the agent core to the now-enormous CLI/gateway/web files — but the surrounding engineering discipline lifted both code-quality and maintainability.
 
 ### LangGraph
 

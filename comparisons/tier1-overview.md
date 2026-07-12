@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-04-23
+**Generated:** 2026-07-12
 **Source data:** [data/agents/](../data/agents/)
 
 ---
@@ -25,7 +25,7 @@
 | [GBrain](../reviews/frameworks/gbrain.md) | Framework | TypeScript | MIT | A personal "second brain" that indexes markdown files into Postgres + pgvector for hybrid semantic search, exposed via MCP server and CLI. Built by Garry Tan (YC president). |
 | [Gemini CLI](../reviews/coding/gemini-cli.md) | Coding | TypeScript | Apache-2.0 | Google's open-source terminal agent — React/Ink TUI, Gemini 3 models with 1M context, Google Search grounding, A2A protocol, and a comprehensive policy engine. |
 | [Goose](../reviews/coding/goose.md) | Coding | Rust, TypeScript | Apache-2.0 | The most ambitious open-source AI agent — Rust core, 25+ LLM providers, MCP-first extension system (70+ extensions), multi-layer security pipeline, local inference, desktop app, CLI, HTTP API, and Telegram gateway. From Block (now AAIF/Linux Foundation). |
-| [Hermes Agent](../reviews/general-purpose/hermes-agent.md) | General | Python, TypeScript, Shell, Nix | MIT | The self-improving general-purpose agent from Nous Research — 385k LOC Python monolith with a learning loop that creates skills from experience, 54 built-in tools, 20+ messaging platforms, pluggable memory providers, and RL training integration. |
+| [Hermes Agent](../reviews/general-purpose/hermes-agent.md) | General | Python, TypeScript, Rust, Shell, Nix | MIT | The self-improving general-purpose agent from Nous Research — a ~1.4M-LOC Python monolith with an autonomous learning loop that creates skills from experience, a declarative multi-provider registry, ~80 built-in tools, ~20 messaging platforms, a Kanban multi-agent fleet, native desktop and web UIs, and RL training integration. |
 | [LangGraph](../reviews/frameworks/langgraph.md) | Framework | Python | MIT | The Pregel-inspired orchestration framework from LangChain Inc — stateful graph execution with first-class checkpointing, human-in-the-loop interrupts, 7 streaming modes, and production deployment tooling. The de facto standard for building durable AI agents in Python. |
 | [memU](../reviews/frameworks/memu.md) | Framework | Python, Rust | Apache-2.0 | A memory framework built for 24/7 proactive agents — continuously captures and understands user intent to reduce LLM token costs while enabling long-running agents that anticipate and act without explicit commands. |
 | [Microsoft Agent Framework](../reviews/frameworks/microsoft-agent-framework.md) | Framework | Python, C# | MIT | Microsoft's enterprise-ready successor to AutoGen — fully released at 1.0/1.1, Python + .NET parity, 27 packages per language, DAG workflows with checkpointing and time-travel, 5 orchestration builders, native A2A/MCP/AG-UI protocols, Azure Foundry/Copilot Studio/Cosmos integration, declarative YAML agents, and 23 ADRs documenting architectural decisions. |
@@ -55,7 +55,7 @@
 | GBrain | 6.5k | — | 6 | 24 | 1 |
 | Gemini CLI | 109.8k | 2611 | 120 | — | — |
 | Goose | 142.8k | 366 | 83 | — | — |
-| Hermes Agent | 385k | 852 | 18 | — | — |
+| Hermes Agent | 1400k | 2976 | 30 | — | — |
 | LangGraph | 135k | 315 | 6 | — | — |
 | memU | 15.6k | 239 | 10 | 287 | 34 |
 | Microsoft Agent Framework | 381k | 1739 | 7 | — | — |
@@ -85,7 +85,7 @@
 | GBrain | Contract-first markdown second-brain — single operations table generates CLI, MCP, and tools-json with parity tests | Alpha, 5 days old, single contributor, global mutable DB connection, stub features |
 | Gemini CLI | Google-scale polish — React/Ink TUI, local Gemma classifier for model routing, platform-native sandboxing | Gemini-only vendor lock-in, Clearcut telemetry to Google, Google discontinuation risk |
 | Goose | Ambitious MCP-first platform — 25+ providers, 70+ extensions, multi-layer security pipeline, local inference | Security inspection disabled by default, 2000+ line core files, git-pinned patches, PostHog telemetry on |
-| Hermes Agent | Self-improving agent with RL-training integration — 54 tools, 20+ messaging channels, pluggable memory providers | 10k-line run_agent.py and cli.py god files, known CVEs in pinned deps, no visible CI |
+| Hermes Agent | Self-improving agent platform — declarative 29-provider registry, ~80 tools, ~20 messaging channels, Kanban multi-agent fleet, native desktop app + web dashboard, RL integration | God-files migrated from the core to 14k–21k-line CLI/gateway/web files; default-unsandboxed local backend and plaintext on-disk credentials by design |
 | LangGraph | Pregel superstep model applied to LLM agents — durable, resumable, time-travel-debuggable | Closed-source server runtime, LangSmith ecosystem gravity, steeper learning curve |
 | memU | Memory-first framework — tiered retrieval with LLM sufficiency checks, salience-aware ranking | Not standalone (needs an agent to wrap it), late alpha despite v1.5.1 label, Rust stub, thin tests |
 | Microsoft Agent Framework | Enterprise dual-language parity — Python + .NET co-designed, 23 ADRs, 5 orchestration builders, deep Azure | Azure ecosystem gravity, 27 packages per language, most non-core providers still beta |
@@ -115,7 +115,7 @@
 | GBrain | 2 | yes | — | no | moderate |
 | Gemini CLI | 1 | yes | yes | yes | high |
 | Goose | 25 | yes | no | yes | none |
-| Hermes Agent | — | yes | no | yes | none |
+| Hermes Agent | 29 | yes | no | yes | none |
 | LangGraph | — | no | no | yes | moderate |
 | memU | — | yes | — | no | moderate |
 | Microsoft Agent Framework | — | yes | no | yes | moderate |

@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-04-23
+**Generated:** 2026-07-12
 **Source data:** [data/agents/](../data/agents/)
 
 ---
@@ -25,7 +25,7 @@
 | GBrain | contract-first with pluggable BrainEngine + StorageBackend interfaces | src/core/operations.ts defines ~30 operations as single source of truth. CLI and MCP server both generated from it. BrainEngine interface with 30+ methods; currently only PostgresEngine implemented. StorageBackend pluggable (S3, Supabase, local). |
 | Gemini CLI | npm-workspaces monorepo, 7 packages | Packages core (API orchestration), cli (React/Ink TUI), sdk (embedding), a2a-server, devtools, test-utils, vscode-ide-companion. Data flows GeminiChat → Turn (streaming generator) → Scheduler. |
 | Goose | 9-crate Rust workspace plus Electron desktop | Core (~90k lines) houses agent loop, providers, extensions, security, sessions. Server is Axum-based HTTP with REST routes. Goose-cli, goose-server, goose-mcp, goose-acp, goose-sdk, goose-test, goose-test-support as supporting crates. |
-| Hermes Agent | single-repo Python monolith with god-files | run_agent.py (10,613 lines) contains AIAgent class and main conversation loop. cli.py (9,967 lines) wraps agent in prompt_toolkit TUI. hermes_cli/ has 50+ modules. hermes_state.py provides SQLite persistence with WAL mode and FTS5 search. |
+| Hermes Agent | single-repo Python monolith, decomposed core + plugin extension system, with large CLI/gateway/web god-files | Core loop decomposed out of run_agent.py (10,613 to 6,055 lines) into agent/conversation_loop.py, tool_executor.py, per-provider adapters, and agent/transports/. plugins/ is now a first-class extension system. God-files migrated to gateway/run.py (21k), hermes_cli/web_server.py (17k), cli.py (16k), hermes_cli/main.py (15k), tui_gateway/server.py (14k). Persistence still hermes_state.py (SQLite, WAL, FTS5). |
 | LangGraph | monorepo of 8 libs with Pregel execution engine | langgraph (core, 20k LOC), langgraph-prebuilt (ReAct, ToolNode), langgraph-checkpoint (interfaces), langgraph-checkpoint-sqlite and -postgres (backends), langgraph-cli (deployment), langgraph-sdk-py (client). StateGraph builder compiles to Pregel. Channel abstraction provides pluggable update semantics. |
 | memU | mixin-composed service over pluggable Database Protocol | MemoryService composed of MemorizeMixin/RetrieveMixin/CRUDMixin; clean module boundaries (app/database/llm/embedding/workflow/prompts); Rust extension is scaffold only. |
 | Microsoft Agent Framework | dual-language monorepo with 27 packages per language | python/packages/ (27 packages) and dotnet/src/ (27 projects with Microsoft.Agents.AI.* namespaces) with shared proto-like YAML contracts. BaseAgent → RawAgent → Agent core. BaseChatClient with capability protocols (SupportsMCPTool, SupportsCodeInterpreterTool, etc.). |
@@ -53,7 +53,7 @@
 | GBrain | 2 | direct | api_key |
 | Gemini CLI | 1 | direct | api_key, oauth, vertex-ai, cloud-shell-adc, gateway |
 | Goose | 25 | custom | api_key, oauth, keyring |
-| Hermes Agent | — | custom | api_key, oauth |
+| Hermes Agent | 29 | custom | api_key, oauth, aws_sdk, op-references |
 | LangGraph | — | custom | api_key |
 | memU | — | custom | api_key |
 | Microsoft Agent Framework | — | custom | api_key, azure-identity, managed-identity |
@@ -81,7 +81,7 @@
 | GBrain | 30 MCP tools auto-generated from operations array | yes (supported) | create, read, update, search, chunks, links, ... |
 | Gemini CLI | BaseDeclarativeTool with model-family-specific tool sets | yes (supported) | ReadFile, WriteFile, Edit, Shell, Glob, Grep, ... |
 | Goose | layered platform-extensions + external MCP extensions with inspection pipeline | yes (supported) | Developer, Analyze, Todo, Apps, ChatRecall, Summon, ... |
-| Hermes Agent | self-registering tool registry with toolsets | yes (supported) | memory, delegate_task, shell, file_edit, web, browser, ... |
+| Hermes Agent | self-registering tool registry with toolsets | yes (supported) | memory, delegate_task, shell, file_edit, web, browser_cdp, ... |
 | LangGraph | ToolNode with parallel execution + typed state/store injection | no (n/a) | ToolNode, ValidationNode, tools_condition |
 | memU | exposes itself as tools (rather than calling tools itself) | yes (supported) | — |
 | Microsoft Agent Framework | @tool decorator with hybrid provider-specific + generic function tools | yes (supported) | function-tool, code-interpreter, file-search, web-search, image-generation, mcp-stdio, ... |
@@ -109,7 +109,7 @@
 | GBrain | yes | no | yes | yes | Core product. Knowledge model splits every page into "compiled truth" (current best understanding) above separator and append-only "timeline" below. Database schema has 10 tables (pages, content_chunks, links, tags, timeline_entries, page_versions, raw_data, files, ingest_log, config). Sync does incremental git-to-brain via git diff --name-status -M. Import idempotent via SHA-256 hashing. |
 | Gemini CLI | yes | yes | no | no | Four-level hierarchical memory (global, extension, project, user-project) via GEMINI.md files; ChatRecordingService NDJSON with rewind; checkpointing on file-modifying tool calls. |
 | Goose | yes | yes | yes | no | SQLite via sqlx (schema v10); 7 session types (User, Scheduled, SubAgent, Hidden, Terminal, Gateway, ACP) with LRU-cached agents. Auto-compaction at 80% context. ChatRecall searches past sessions. Separate Memory MCP server for key-value data. |
-| Hermes Agent | yes | yes | yes | yes | Three-layer — Session DB (SQLite + FTS5), Built-in memory (~/.hermes/memories/ with MEMORY.md + USER.md + threat scanning), Pluggable memory providers. Context fencing wraps recalled memory in <memory-context> tags. |
+| Hermes Agent | yes | yes | yes | yes | Three-layer intact — Session DB (SQLite + FTS5), Built-in memory (~/.hermes/memories/ MEMORY.md + USER.md, now profile-scoped, threat-scanned, <memory-context> fenced), Pluggable providers (agent/memory_manager.py, single-external-provider enforced). plugins/memory/ now has 8 providers (honcho, mem0, hindsight + byterover, holographic, openviking, retaindb, supermemory). |
 | LangGraph | yes | no | yes | yes | Two distinct persistence layers. Checkpointer — BaseCheckpointSaver interface with sync/async get/put/list/delete. Implementations — InMemorySaver, SqliteSaver, PostgresSaver (psycopg 3 async pool). Durability modes (sync, async, exit). Thread IDs enable conversational memory, time-travel. Store — BaseStore with hierarchical namespaces, vector search via pgvector or sqlite-vec. |
 | memU | yes | yes | no | yes | Core product — tiered RAG (route intention -> category -> items -> resources) or LLM-based retrieval; salience-aware ranking. |
 | Microsoft Agent Framework | yes | yes | yes | yes | Three layers — Sessions (AgentSession with pluggable HistoryProvider, ContextProvider injects RAG); Workflow checkpointing (FileCheckpointStorage, InMemoryCheckpointStorage, CosmosCheckpointStorage with restricted pickle); Durable agents via durabletask integration (Microsoft Durable Task Framework for multi-hour/day orchestrations with replay). Memory integrations — Mem0, Redis, Azure AI Search, Azure Cosmos. |
@@ -137,7 +137,7 @@
 | GBrain | none (retrieval/storage layer, not agent framework) | no | no | Orchestration delegated to external systems (OpenClaw, Hermes, any MCP client). Intelligence lives in skill markdown files — natural-language playbooks telling agents how to use GBrain's tools. |
 | Gemini CLI | event-driven Scheduler with state machine (scheduled → validating → executing → completed) | yes | yes | Local subagents declared declaratively (codebase-investigator, generalist-agent, cli-help-agent, memory-manager-agent, browser); remote agents via A2A. ModelRouterService uses composite strategy (fallback, override, approval-mode, Gemma classifier, generic, numerical, default). |
 | Goose | turn-based agent loop with inspection pipeline and parallel tool execution | yes | no | ~2470-line agent loop with max 1000 turns. Summon delegates to fresh agent instances. Cron-based scheduler for recurring tasks. MOIM system injects custom context per turn. Recipes provide declarative task config. |
-| Hermes Agent | iteration-budgeted agent loop with subagent spawning | yes | no | Default 90-iteration budget shared parent+subagents via thread-safe IterationBudget. delegate_task creates fresh AIAgent instances. Context compression at 50% context limit. Cron scheduler runs jobs every 60s with delivery to 13+ platforms. |
+| Hermes Agent | iteration-budgeted agent loop + subagents, with a new Kanban multi-agent fleet layer | yes | no | Core loop unchanged — run_conversation() (agent/conversation_loop.py), default 90-iteration shared IterationBudget, delegate_task spawns fresh AIAgents, context compression at 50%. NEW Kanban fleet (hermes_cli/kanban_db.py, ~2.5k lines) — durable SQLite work queue, gateway-hosted dispatcher, columns triage-to-done, parent/child DAGs, retry history, crash recovery (failure_limit auto-block), swarm topology (planner/specialists/verifier/synthesizer). Cron scheduler still 60s. |
 | LangGraph | Pregel superstep model with ThreadPoolExecutor / asyncio | yes | yes | Each superstep reads channel values, determines next tasks based on versions, executes tasks in parallel, applies reducers, checkpoints, repeats until no pending tasks. Send enables dynamic map-reduce. Command for complex control flow (update/goto/resume/parent-comm). Retry policies per node with exponential backoff. Recursion limit. Subgraph composition. |
 | memU | pipeline-based (PipelineManager + WorkflowStep) | no | no | Named pipelines with requires/produces validation, mutable at runtime, pluggable WorkflowRunner backends (Temporal, Burr). |
 | Microsoft Agent Framework | graph-based workflows + five pre-built orchestration builders | yes | yes | WorkflowBuilder with directed edges between Executor subclasses. Edge types — SingleEdge, FanOutEdgeGroup, FanInEdgeGroup, SwitchCaseEdgeGroup. Five builders — SequentialBuilder, ConcurrentBuilder, HandoffBuilder, GroupChatBuilder, MagenticBuilder. .NET workflow source generators via Roslyn. |
@@ -165,7 +165,7 @@
 | GBrain | cli, mcp-server, typescript-library, tools-json |
 | Gemini CLI | tui, headless, vscode, acp, sea, docker |
 | Goose | cli, desktop-electron, http-api, sse, mcp-proxy, telegram-gateway, acp, dictation |
-| Hermes Agent | cli, telegram, discord, slack, whatsapp, signal, matrix, mattermost, email, sms, wechat, wecom, feishu, dingtalk, bluebubbles, openai-api, mcp, acp |
+| Hermes Agent | cli, tui-ink, desktop-electron, web-dashboard, telegram, discord, slack, whatsapp, signal, matrix, mattermost, teams, email, sms, wechat, wecom, feishu, dingtalk, google-chat, irc, line, ntfy, simplex, qqbot, yuanbao, bluebubbles, homeassistant, webhooks, openai-api, mcp, acp |
 | LangGraph | library, cli, langgraph-server, python-sdk, js-sdk |
 | memU | python-library, langgraph-tool, mcp-server, openai-wrapper |
 | Microsoft Agent Framework | python-api, dotnet-api, devui, a2a, ag-ui, aspnet-core-hosting, azure-functions |
@@ -193,7 +193,7 @@
 | GBrain | bun test | 26 | no | 21 unit tests + 5 E2E against real Postgres+pgvector with 16-file fixture corpus; docker-compose.test.yml provides pgvector for local testing; E2E skip gracefully when DATABASE_URL unset. |
 | Gemini CLI | vitest with V8 coverage | — | no | ~107 integration tests, ~30 behavior evals, memory/perf regression baselines with heap/RSS tracking, preflight pipeline (clean/install/build/lint/typecheck/full-suite) |
 | Goose | cargo test + wiremock + mockall + insta + serial_test | 147 | no | integration tests for agent/compaction/MCP/adversary/scheduler/provider, ACP protocol tests, TLS tests, MCP playback/record in goose-test-support, evals/open-model-gym for model evaluation |
-| Hermes Agent | pytest (9.x) + pytest-asyncio + pytest-xdist | 533 | no | 3299 test functions; tests/tools/ has 475+ tool-specific; integration tests for batch runner, checkpoint resumption, Daytona/Modal terminals, voice flows. No visible CI/CD workflow files. |
+| Hermes Agent | pytest + pytest-asyncio, sharded in CI | 2019 | no | ~735k LOC of tests (quadrupled from 533 files); CI runs sharded matrix slices with duration caching; integration tests gated out of default runs; isolated HERMES_HOME per test. |
 | LangGraph | pytest + pytest-asyncio + syrupy | 111 | no | ~72000 LOC test code; 53% test-to-code ratio; 21 CI workflows including per-lib lint (ruff, mypy strict), per-lib pytest matrix across Python 3.10-3.13, SDK method parity checks, CLI schema validation, integration tests; contract tests for checkpointer and store implementations. |
 | memU | pytest + pytest-asyncio | 15 | no | no e2e tests; some tests require live API key |
 | Microsoft Agent Framework | pytest (Python) + xUnit v3 (.NET) | 243 | no | 205 Python + 38 .NET test projects; 80% code coverage threshold enforced in CI; 26 GitHub Actions workflows covering .NET build-and-test (net8/net9/net10 matrix with parallel Docker, nightly UTC), integration tests, sample validation, code style, Python pipelines, CodeQL, merge gatekeeper. |
@@ -221,7 +221,7 @@
 | GBrain | — | n/a | API keys from env only; database_url in ~/.gbrain/config.json with 0600 permissions | Config files with 0600 permissions. Row Level Security enabled on all 10 tables when connected role has BYPASSRLS. doctor command warns on RLS status. Slug validation rejects path traversal. Parameterized SQL throughout. |
 | Gemini CLI | yes | ApprovalMode enum (DEFAULT, YOLO, PLAN) | OAuth/API key via standard auth flows | Folder trust (FolderTrustDiscoveryService scans .gemini/ before granting trust); policy engine TOML rules with wildcards; platform-native sandboxing (bubblewrap/seatbelt/Windows C#); safety subsystem with checker runners; environment sanitization strips sensitive vars. |
 | Goose | no | configurable per GooseMode (Auto, Approve, SmartApprove, Chat) | keyring integration for secrets | Multi-layer ToolInspectionManager — SecurityInspector (30+ threat patterns), EgressInspector (network monitoring), AdversaryInspector (LLM-based review), PermissionInspector (3-tier), RepetitionInspector. Extension malware checking. SECURITY.md candidly acknowledges prompt injection risks. |
-| Hermes Agent | no | pattern-based command approval (35+ regex patterns) + smart LLM approval for low-risk | env var based | Three approval modes (per-session, gateway-blocking, smart LLM). Write deny list blocks system files. Unicode NFKC normalization defeats fullwidth obfuscation. ANSI escape stripping. Optional Tirith subprocess wrapper. Memory tool scans for prompt injection before system prompt injection. |
+| Hermes Agent | no | pattern-based (73 dangerous + 12 hardline patterns) with manual/smart/off modes; HARDLINE floor below yolo/cron; smart mode uses auxiliary LLM | plaintext ~/.hermes/.env + credential-pool auth.json (0o600), op:// references; no OS keyring | Hardened since April — HARDLINE unconditional blocklist, user deny-globs, sudo stdin/askpass guard, YOLO frozen at import (fixed injection escalation), contextvar TOCTOU fix (GHSA-96vc-wcxf-jjff), broader de-obfuscation (ANSI/$IFS/ home-folding). Seven terminal backends (added managed_modal); default still unsandboxed local. Desktop SudoDialog for mid-turn privilege prompts. Tirith a dedicated module (fail-open). defusedxml for WeCom XXE. threat_patterns.py shared. New SECURITY.md states an honest trust model: OS isolation is the only boundary; approval/redaction/Skills-Guard are heuristics, not boundaries. |
 | LangGraph | no | interrupts provide natural approval gates (Command(resume=...)) | SDK Bearer tokens + custom handlers; beta at-rest encryption | No built-in command sandboxing — tool execution is user's responsibility. mypy disallow_untyped_defs=True enforced. Checkpoint serde includes EncryptedSerializer. Thread isolation via thread_id provides multi-tenant separation. Interrupts pause graphs at designated nodes waiting for client resume. |
 | memU | — | n/a | API keys passed as config | defusedxml for LLM-XML parsing; where-filter validation against user_model; prompt-injection surface via user-supplied memory content only partially mitigated. |
 | Microsoft Agent Framework | no | FunctionApprovalRequestContent as first-class message type | azure-identity for managed identity and RBAC | Pydantic strict validation at all boundaries. Restricted pickle deserialization in checkpoint storage. Tool approval workflow as first-class message type (not convention). Optional Bearer auth on DevUI. Purview integration provides data governance and compliance hooks. Middleware pipeline enables PII redaction, prompt injection detection, audit logging. |
@@ -249,7 +249,7 @@
 | GBrain | — | — | — | — | — |
 | Gemini CLI | — | — | — | — | — |
 | Goose | — | — | — | — | — |
-| Hermes Agent | — | — | — | — | — |
+| Hermes Agent | low | None auto-executing — no .claude/.cursor/.vscode/.devcontainer/.husky; only .envrc (use flake), opt-in via direnv allow | 2 AGENTS.md (root + apps/desktop) = benign dev guidance; no CLAUDE.md/.cursorrules/GEMINI.md; 175 SKILL.md are product feature content | Root package.json postinstall is just an echo; setup.py defensive-only; stock setuptools backend; setup-hermes.sh (curl uv installer + sudo apt ripgrep + shell-rc PATH edit) is fully opt-in | no |
 | LangGraph | — | — | — | — | — |
 | memU | — | — | — | — | — |
 | Microsoft Agent Framework | — | — | — | — | — |
@@ -277,7 +277,7 @@
 | GBrain | bun add -g github:garrytan/gbrain or compile to standalone binary | yes | no | linux, macos |
 | Gemini CLI | npm install -g @google/gemini-cli (or npx zero-install) | yes | yes | linux, macos, windows |
 | Goose | shell script installer (macOS/Linux/Windows with arch detection) or npm/brew | yes | yes | linux, macos, windows |
-| Hermes Agent | setup-hermes.sh (shell installer) or Docker or Nix | no | yes | linux, macos, android |
+| Hermes Agent | curl | bash installer, setup-hermes.sh, Docker, Nix, or Homebrew | yes | yes | linux, macos, windows, android |
 | LangGraph | pip install langgraph | no | yes | linux, macos, windows |
 | memU | uv install (maturin build backend) | no | no | linux, macos, windows |
 | Microsoft Agent Framework | pip install agent-framework[openai] or NuGet Microsoft.Agents.AI.* | no | yes | linux, macos, windows |
@@ -305,7 +305,7 @@
 | GBrain | Extensive for its age. README (710 lines) covers architecture, setup, knowledge model, search internals, schema, chunking, commands, storage estimates. CLAUDE.md for AI-assisted development. 6 docs + 7 skill markdown files as agent-facing playbooks. CONTRIBUTING.md, CHANGELOG.md, TODOS.md. |
 | Gemini CLI | Polished README with CI badges and release channel info; GEMINI.md at root; extensive /docs/ with 22 CLI guides, 11 tool docs, hooks/extensions/core/ reference sections; ROADMAP.md; JSON schema for settings; CONTRIBUTING.md and SECURITY.md. |
 | Goose | External Docusaurus site (goose-docs.ai) with guides, tutorials, architecture, MCP guides, troubleshooting. In-repo: CONTRIBUTING.md, GOVERNANCE.md, MAINTAINERS.md, SECURITY.md, RELEASE.md, CUSTOM_DISTROS.md. OpenAPI schema generation in server crate. |
-| Hermes Agent | README covers features, install, CLI reference, self-improving capabilities. CONTRIBUTING.md (26k) details priorities. docs/ includes ACP setup, Honcho spec, architecture, migration guides. Seven RELEASE_v*.md files. AGENTS.md (20k) for AI-assisted development. |
+| Hermes Agent | Full Docusaurus site under website/ (getting-started, user/developer guides, integrations, reference) with Chinese i18n and a live docs site; spec docs under docs/ (kanban, security, design, observability). AGENTS.md 1,356 lines, CONTRIBUTING.md 1,008, SECURITY.md 332. README in 4 languages. Dedicated OpenClaw migration guide. Old root RELEASE_v*.md retired in favor of the site. |
 | LangGraph | External docs site at docs.langchain.com (not in repo) covers Graph API, streaming, persistence, memory, workflows, how-tos, tutorials. API reference at reference.langchain.com. In-repo — CLAUDE.md/AGENTS.md (contributor guidance), README quickstart, examples/ directory with 20+ categories (chatbots, multi-agent, RAG, plan-and-execute, reflexion, rewoo, self-discover, LATS, web-navigation, USACO). |
 | memU | Substantial README (28KB); docs/ has architecture + integration + deployment + ADR directory; 8+ runnable examples; per-memory-type prompt templates extensively documented. |
 | Microsoft Agent Framework | 23 Architecture Decision Records in docs/decisions/ including run response design (516 lines with comparisons to AutoGen, OpenAI Assistants, Google ADK, LangGraph), tool abstraction, OpenTelemetry, context compaction, structured output, middleware, serialization, skills, provider alignment. FAQS.md, CODING_STANDARD.md. Samples organized by complexity (01-get-started through 05-end-to-end) with AutoGen migration paths. |

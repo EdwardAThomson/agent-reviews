@@ -5,123 +5,136 @@ review: reviews/general-purpose/hermes-agent.md
 status: active
 
 design_philosophy:
-  approach: "Self-improving agent with RL-training integration — 54 tools, 20+ messaging channels, pluggable memory providers"
-  tradeoff: "10k-line run_agent.py and cli.py god files, known CVEs in pinned deps, no visible CI"
+  approach: "Self-improving agent platform — declarative 29-provider registry, ~80 tools, ~20 messaging channels, Kanban multi-agent fleet, native desktop app + web dashboard, RL integration"
+  tradeoff: "God-files migrated from the core to 14k–21k-line CLI/gateway/web files; default-unsandboxed local backend and plaintext on-disk credentials by design"
 
 identity:
   repo: https://github.com/NousResearch/hermes-agent
-  commit: 67fece1176d59481f00308ce801d17a474923006
-  commit_date: 2026-04-13
-  review_date: 2026-04-13
-  language: [Python, TypeScript, Shell, Nix]
+  commit: 7b5ba2054721dde998ed47fd4a0f031955278e99
+  commit_date: 2026-07-12
+  review_date: 2026-07-12
+  language: [Python, TypeScript, Rust, Shell, Nix]
   license: MIT
-  loc: 385000
-  files: 852
+  loc: 1400000
+  files: 2976
   dependencies:
-    direct: 18
-    notes: "18 core + 15 optional extras (modal, messaging, voice, MCP, RL)"
+    direct: 30
+    notes: "~30 exact-pinned core deps (CVE-annotated, supply-chain rationale) + ~60 optional extras (providers, messaging, voice, MCP, RL, cloud). LOC is Python; ~735k of it is tests, plus ~290k TS/TSX in web/desktop/tui"
   commits: null
   contributors: null
   stated_purpose: >
-    The self-improving general-purpose agent from Nous Research — 385k LOC Python
-    monolith with a learning loop that creates skills from experience, 54 built-in
-    tools, 20+ messaging platforms, pluggable memory providers, and RL training
-    integration.
+    The self-improving general-purpose agent from Nous Research — a ~1.4M-LOC Python
+    monolith with an autonomous learning loop that creates skills from experience, a
+    declarative multi-provider registry, ~80 built-in tools, ~20 messaging platforms,
+    a Kanban multi-agent fleet, native desktop and web UIs, and RL training integration.
   notable_features:
     - Self-improving skill loop — agent reviews trajectories to create reusable skills
-    - Trajectory compression for RL training integration (Atropos)
-    - 54 built-in tools with self-registering registry
-    - 20+ messaging platforms via gateway (Telegram, Discord, Slack, WhatsApp, Signal, Matrix, etc.)
-    - Pluggable memory providers (Honcho, Mem0, Hindsight, 5 others)
-    - Six terminal backends (local, Docker, SSH, Modal, Daytona, Singularity)
+    - Declarative ProviderProfile registry — 29 model providers as plugins + credential-failover pool
+    - Kanban multi-agent fleet — durable SQLite work queue with pipelines/DAGs, retry history, crash recovery, swarm topology
+    - Native Electron desktop app + React admin dashboard, both over a JSON-RPC tui_gateway
+    - Mixture-of-Agents ensembling and trajectory compression for RL training (Atropos)
+    - Provenance-attested skill-bundle installs (content-hash-bound scan verdicts, trust tiers)
 
 capabilities:
   architecture:
-    pattern: single-repo Python monolith with god-files
+    pattern: single-repo Python monolith, decomposed core + plugin extension system, with large CLI/gateway/web god-files
     summary: >
-      run_agent.py (10,613 lines) contains AIAgent class and main conversation
-      loop. cli.py (9,967 lines) wraps agent in prompt_toolkit TUI.
-      hermes_cli/ has 50+ modules. hermes_state.py provides SQLite persistence
-      with WAL mode and FTS5 search.
+      Core loop decomposed out of run_agent.py (10,613 to 6,055 lines) into
+      agent/conversation_loop.py, tool_executor.py, per-provider adapters, and
+      agent/transports/. plugins/ is now a first-class extension system.
+      God-files migrated to gateway/run.py (21k), hermes_cli/web_server.py (17k),
+      cli.py (16k), hermes_cli/main.py (15k), tui_gateway/server.py (14k).
+      Persistence still hermes_state.py (SQLite, WAL, FTS5).
   llm_integration:
-    providers: null
+    providers: 29
     gateway: custom
-    provider_list: [anthropic, openai, openrouter, ollama, vllm]
-    auth: [api_key, oauth]
-    notes: Provider auto-detected from base URL patterns. Native Anthropic SDK for Claude, OpenAI SDK for everything else. Automatic prompt caching with cache_control breakpoint injection. Reasoning tokens preserved across providers.
+    provider_list: [anthropic, openai, openrouter, nous, gemini, bedrock, vertex, azure-foundry, deepseek, xai, kimi, qwen, copilot, minimax, ollama, custom]
+    auth: [api_key, oauth, aws_sdk, op-references]
+    notes: Declarative ProviderProfile registry (providers/base.py) with 29 bundled provider plugins in plugins/model-providers/; URL auto-detection now a fallback. Native transports for Anthropic/Bedrock/Codex/Gemini. Credential pool (agent/credential_pool.py) does same-provider failover with provider-boundary + exhausted-not-authenticated enforcement. Mixture-of-Agents (agent/moa_loop.py). Anthropic prompt caching treated as sacred; reasoning tokens profile-driven.
   tool_calling:
     pattern: self-registering tool registry with toolsets
     mcp_support: true
     mcp_stance: supported
-    builtin_tools: [memory, delegate_task, shell, file_edit, web, browser, vision, skills, session_search]
-    notes: 54 tool files in tools/. Toolsets group tools by use case (web, terminal, file, browser, vision, skills, delegation) with composite sets per platform. MCP client connects to external servers; MCP server exposes 10 conversation-management tools. Plugin system via ~/.hermes/plugins/.
+    builtin_tools: [memory, delegate_task, shell, file_edit, web, browser_cdp, computer_use, vision, skills, session_search, kanban, video_generation]
+    notes: registry.register() at import unchanged; ~34 registering modules exposing ~80 tools (was "54 files"). MCP client (tools/mcp_tool.py) + server (mcp_serve.py, still 10 tools); optional-mcps/ bundles linear/n8n/unreal-engine. New provenance-attested skill-bundle install pipeline (tools/skills_guard.py) — fetch to quarantine to scan to install, content-hash-bound verdicts, trust tiers gate --force.
   memory:
     session_persistence: true
     compaction: true
     branching: true
     vector_store: true
-    notes: Three-layer — Session DB (SQLite + FTS5), Built-in memory (~/.hermes/memories/ with MEMORY.md + USER.md + threat scanning), Pluggable memory providers. Context fencing wraps recalled memory in <memory-context> tags.
+    notes: Three-layer intact — Session DB (SQLite + FTS5), Built-in memory (~/.hermes/memories/ MEMORY.md + USER.md, now profile-scoped, threat-scanned, <memory-context> fenced), Pluggable providers (agent/memory_manager.py, single-external-provider enforced). plugins/memory/ now has 8 providers (honcho, mem0, hindsight + byterover, holographic, openviking, retaindb, supermemory).
   orchestration:
-    pattern: iteration-budgeted agent loop with subagent spawning
+    pattern: iteration-budgeted agent loop + subagents, with a new Kanban multi-agent fleet layer
     sub_agents: true
     plan_mode: false
-    notes: Default 90-iteration budget shared parent+subagents via thread-safe IterationBudget. delegate_task creates fresh AIAgent instances. Context compression at 50% context limit. Cron scheduler runs jobs every 60s with delivery to 13+ platforms.
-  io: [cli, telegram, discord, slack, whatsapp, signal, matrix, mattermost, email, sms, wechat, wecom, feishu, dingtalk, bluebubbles, openai-api, mcp, acp]
+    notes: Core loop unchanged — run_conversation() (agent/conversation_loop.py), default 90-iteration shared IterationBudget, delegate_task spawns fresh AIAgents, context compression at 50%. NEW Kanban fleet (hermes_cli/kanban_db.py, ~2.5k lines) — durable SQLite work queue, gateway-hosted dispatcher, columns triage-to-done, parent/child DAGs, retry history, crash recovery (failure_limit auto-block), swarm topology (planner/specialists/verifier/synthesizer). Cron scheduler still 60s.
+  io: [cli, tui-ink, desktop-electron, web-dashboard, telegram, discord, slack, whatsapp, signal, matrix, mattermost, teams, email, sms, wechat, wecom, feishu, dingtalk, google-chat, irc, line, ntfy, simplex, qqbot, yuanbao, bluebubbles, homeassistant, webhooks, openai-api, mcp, acp]
   testing:
-    framework: pytest (9.x) + pytest-asyncio + pytest-xdist
-    file_count: 533
+    framework: pytest + pytest-asyncio, sharded in CI
+    file_count: 2019
     faux_provider: false
-    coverage_signal: 3299 test functions; tests/tools/ has 475+ tool-specific; integration tests for batch runner, checkpoint resumption, Daytona/Modal terminals, voice flows. No visible CI/CD workflow files.
+    coverage_signal: ~735k LOC of tests (quadrupled from 533 files); CI runs sharded matrix slices with duration caching; integration tests gated out of default runs; isolated HERMES_HOME per test.
   security:
     default_bash_sandbox: false
-    approval_gate: pattern-based command approval (35+ regex patterns) + smart LLM approval for low-risk
-    credential_storage: env var based
+    approval_gate: pattern-based (73 dangerous + 12 hardline patterns) with manual/smart/off modes; HARDLINE floor below yolo/cron; smart mode uses auxiliary LLM
+    credential_storage: plaintext ~/.hermes/.env + credential-pool auth.json (0o600), op:// references; no OS keyring
     notes: >
-      Three approval modes (per-session, gateway-blocking, smart LLM). Write
-      deny list blocks system files. Unicode NFKC normalization defeats
-      fullwidth obfuscation. ANSI escape stripping. Optional Tirith subprocess
-      wrapper. Memory tool scans for prompt injection before system prompt
-      injection.
+      Hardened since April — HARDLINE unconditional blocklist, user deny-globs,
+      sudo stdin/askpass guard, YOLO frozen at import (fixed injection escalation),
+      contextvar TOCTOU fix (GHSA-96vc-wcxf-jjff), broader de-obfuscation (ANSI/$IFS/
+      home-folding). Seven terminal backends (added managed_modal); default still
+      unsandboxed local. Desktop SudoDialog for mid-turn privilege prompts. Tirith a
+      dedicated module (fail-open). defusedxml for WeCom XXE. threat_patterns.py shared.
+      New SECURITY.md states an honest trust model: OS isolation is the only boundary;
+      approval/redaction/Skills-Guard are heuristics, not boundaries.
   repo_trust_surfaces:
-    risk_level: null
-    notes: Not collected in original review (pre-2026-04-21 methodology).
+    risk_level: low
+    agent_config_dirs: "None auto-executing — no .claude/.cursor/.vscode/.devcontainer/.husky; only .envrc (use flake), opt-in via direnv allow"
+    auto_loaded_instructions: "2 AGENTS.md (root + apps/desktop) = benign dev guidance; no CLAUDE.md/.cursorrules/GEMINI.md; 175 SKILL.md are product feature content"
+    lifecycle_scripts: "Root package.json postinstall is just an echo; setup.py defensive-only; stock setuptools backend; setup-hermes.sh (curl uv installer + sudo apt ripgrep + shell-rc PATH edit) is fully opt-in"
+    install_time_exec: false
+    notes: A standard install (pip install ., uv sync, root npm install) runs no arbitrary code. One nested plugins/platforms/photon/sidecar postinstall is kept out of the root npm workspaces so it doesn't fire on a top-level install.
   deployment:
-    install: "setup-hermes.sh (shell installer) or Docker or Nix"
-    binary: false
+    install: "curl | bash installer, setup-hermes.sh, Docker, Nix, or Homebrew"
+    binary: true
     docker: true
-    platforms: [linux, macos, android]
-    notes: Multi-stage Docker build (Python 3.13, Debian Trixie) with non-root user (UID 10000). Nix flake with pyproject-nix and uv2nix. Modal for serverless. Supports Daytona and Singularity (HPC). Termux-specific bundle for Android.
+    platforms: [linux, macos, windows, android]
+    notes: Multi-arch SHA-pinned Docker (Debian Trixie, uv base, s6-overlay, non-root). Nix flake (x86_64-linux, aarch64-linux, aarch64-darwin). New Homebrew formula. Native desktop installers via electron-builder (mac dmg/zip, win msi/nsis, linux AppImage/deb/rpm) + Tauri bootstrap-installer. Modal/Daytona/Singularity for serverless/HPC.
   docs: >
-    README covers features, install, CLI reference, self-improving capabilities.
-    CONTRIBUTING.md (26k) details priorities. docs/ includes ACP setup, Honcho
-    spec, architecture, migration guides. Seven RELEASE_v*.md files.
-    AGENTS.md (20k) for AI-assisted development.
+    Full Docusaurus site under website/ (getting-started, user/developer guides,
+    integrations, reference) with Chinese i18n and a live docs site; spec docs under
+    docs/ (kanban, security, design, observability). AGENTS.md 1,356 lines,
+    CONTRIBUTING.md 1,008, SECURITY.md 332. README in 4 languages. Dedicated
+    OpenClaw migration guide. Old root RELEASE_v*.md retired in favor of the site.
 
 opinions:
   ratings:
-    code_quality: 2.5
-    maintainability: 2
+    code_quality: 3
+    maintainability: 3
   maturity: beta
   innovation:
     highlights:
       - Self-improving skill loop creates reusable skills from agent trajectories
-      - Trajectory compression for RL training integration (Atropos)
-      - Memory threat scanning — prompt injection detection before system prompt inclusion
-      - 20+ messaging platform gateway with voice transcription
-      - Pluggable memory providers (Honcho, Mem0, Hindsight, 5 others)
+      - Kanban multi-agent fleet — durable work queue with pipelines/DAGs, retry, crash recovery, swarm topology
+      - Declarative ProviderProfile registry (29 providers) with same-provider credential-failover pool
+      - Mixture-of-Agents ensembling and trajectory compression for RL training (Atropos)
+      - Provenance-attested skill-bundle installs — content-hash-bound scan verdicts, trust-tiered force policy
   practical_utility:
     rating: high
-    target_user: Technically inclined individual wanting a personal AI assistant that learns over time, accessible from any messaging platform. ML researchers fine-tuning models on agent trajectories.
+    target_user: Technically inclined individual wanting a personal AI that learns over time, reachable from any messaging platform or a native desktop app; teams running collaborating agent fleets via Kanban; ML researchers fine-tuning on agent trajectories.
   vendor_lock_in: none
   red_flags:
-    - God files — run_agent.py (10,613 lines), cli.py (9,967 lines), hermes_cli modules exceeding 100k lines each
-    - Known CVEs in pinned dependencies — requests (CVE-2026-25645), PyJWT (CVE-2026-32597) noted in comments but still pinned
-    - No visible CI/CD — .github/ contains no workflow files in shallow clone
-    - OpenClaw migration tooling suggests fork/successor relationship not clearly documented
+    - God-files migrated to CLI/gateway/web — gateway/run.py (21k), web_server.py (17k), cli.py (16k), main.py (15k), tui_gateway/server.py (14k)
+    - Default unsandboxed local terminal backend — SECURITY.md names OS isolation as the only real boundary
+    - Plaintext on-disk credentials (~/.hermes/.env + 0o600 auth.json), no OS keyring
+    - One residual pinned CVE — requests==2.33.0 (CVE-2026-25645), annotated in-file
+    - "Resolved since April: no-CI gap (17 workflows + OSV/supply-chain gates), undocumented OpenClaw relationship (migration guide added), YOLO injection + TOCTOU race fixed"
   summary: >
-    A genuinely innovative agent with the self-improving skill loop and RL training
-    integration setting it apart from the field. 20+ messaging platforms, pluggable
-    memory providers, 54 built-in tools make it functionally comprehensive. However,
-    core architecture suffers from extreme file-size concentration that undermines
-    code quality, maintainability, and contribution accessibility. Unique capabilities
-    for users who value agents that learn from experience.
+    Three months on, Hermes has grown from an innovative-but-rough research monolith
+    (v0.8.0) into a far broader, better-engineered platform (v0.18.2): a declarative
+    29-provider registry with credential failover, a Kanban multi-agent fleet, native
+    desktop and web UIs, a hardened security layer with an honest trust model, and a
+    real CI/supply-chain apparatus. The self-improving skill loop and RL integration
+    remain unique. The persistent caveat is architectural — the god-file problem
+    migrated from the agent core to the now-enormous CLI/gateway/web files — but the
+    surrounding engineering discipline lifted both code-quality and maintainability.

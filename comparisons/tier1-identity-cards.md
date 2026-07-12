@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-04-23
+**Generated:** 2026-07-12
 **Methodology:** See [../METHODOLOGY.md](../METHODOLOGY.md)
 
 ---
@@ -18,19 +18,19 @@
 | Field | Value |
 |-------|-------|
 | **Repo** | https://github.com/NousResearch/hermes-agent |
-| **Commit reviewed** | 67fece1176d59481f00308ce801d17a474923006 |
-| **Date of commit** | 2026-04-13 |
-| **Language(s)** | Python, TypeScript, Shell, Nix |
+| **Commit reviewed** | 7b5ba2054721dde998ed47fd4a0f031955278e99 |
+| **Date of commit** | 2026-07-12 |
+| **Language(s)** | Python, TypeScript, Rust, Shell, Nix |
 | **License** | MIT |
-| **LOC** | 385k |
-| **Files** | 852 |
-| **Dependencies** | 18 (18 core + 15 optional extras (modal, messaging, voice, MCP, RL)) |
+| **LOC** | 1400k |
+| **Files** | 2976 |
+| **Dependencies** | 30 (~30 exact-pinned core deps (CVE-annotated, supply-chain rationale) + ~60 optional extras (providers, messaging, voice, MCP, RL, cloud). LOC is Python; ~735k of it is tests, plus ~290k TS/TSX in web/desktop/tui) |
 | **Commits** | — |
 | **Contributors** | — |
 
-**Stated purpose:** The self-improving general-purpose agent from Nous Research — 385k LOC Python monolith with a learning loop that creates skills from experience, 54 built-in tools, 20+ messaging platforms, pluggable memory providers, and RL training integration.
+**Stated purpose:** The self-improving general-purpose agent from Nous Research — a ~1.4M-LOC Python monolith with an autonomous learning loop that creates skills from experience, a declarative multi-provider registry, ~80 built-in tools, ~20 messaging platforms, a Kanban multi-agent fleet, native desktop and web UIs, and RL training integration.
 
-**Notable features:** Self-improving skill loop — agent reviews trajectories to create reusable skills; Trajectory compression for RL training integration (Atropos); 54 built-in tools with self-registering registry; 20+ messaging platforms via gateway (Telegram, Discord, Slack, WhatsApp, Signal, Matrix, etc.); Pluggable memory providers (Honcho, Mem0, Hindsight, 5 others); Six terminal backends (local, Docker, SSH, Modal, Daytona, Singularity)
+**Notable features:** Self-improving skill loop — agent reviews trajectories to create reusable skills; Declarative ProviderProfile registry — 29 model providers as plugins + credential-failover pool; Kanban multi-agent fleet — durable SQLite work queue with pipelines/DAGs, retry history, crash recovery, swarm topology; Native Electron desktop app + React admin dashboard, both over a JSON-RPC tui_gateway; Mixture-of-Agents ensembling and trajectory compression for RL training (Atropos); Provenance-attested skill-bundle installs (content-hash-bound scan verdicts, trust tiers)
 
 ### Nanobot
 
