@@ -1,0 +1,11 @@
+Build a small command-line tool in Python called `jcsv` that converts between JSON and CSV in both directions, entirely in the current working directory.
+
+Requirements:
+1. CLI: `jcsv json2csv <input.json> <output.csv>` and `jcsv csv2json <input.csv> <output.json>`. When a path is omitted, read from stdin / write to stdout.
+2. A `--help` that documents usage.
+3. json2csv: accept a JSON array of flat objects and emit CSV with a header row (union of keys, stable order). csv2json: emit a JSON array of objects.
+4. Correctly handle quoting, embedded commas, quotes, and newlines inside values, and rows with missing/extra keys.
+5. Write a pytest test suite covering round-trip conversion and each edge case above.
+6. Run the tests yourself and make them all pass. Report the final pytest output.
+
+Constraints: standard library only (json, csv, argparse). No external dependencies.
