@@ -10,11 +10,20 @@ Complement to the static code reviews: run the reviewed agents on identical codi
 
 Build a stdlib-only `jcsv` JSON<->CSV CLI (both directions, stdin/stdout fallback, `--help`, quoting/newline/missing-key edge cases) with a pytest suite it must make pass.
 
-| Run | Harness | Model | Date | Duration | API calls | Tool calls | Output tok | Cost | Tests | Spec | Self-verified | Skill saved |
-|-----|---------|-------|------|----------|-----------|------------|-----------|------|-------|------|---------------|-------------|
-| Hermes | Hermes 0.18.2 (`-z` oneshot, `--yolo`) | claude-sonnet-4.6 | 2026-07-12 | 155 s | 13 | 12 | 8,585 | $0.295 | 44/44 ✓ | partial¹ | yes (ran pytest + stdin smoke) | no² |
-| Raw model baseline | none (single API call, no tools) | claude-sonnet-4.6 | 2026-07-12 | 233 s | 1 | 0 | 20,704 | $0.31 | 63/63 ✓ | partial³ | n/a (no tools) | n/a |
-| OpenClaw | OpenClaw 2026.4.10 (`agent --local`, exec-policy yolo) | claude-sonnet-4.6 | 2026-07-12 | 63 s | ~5 | 4 | 4,005 | ~$0.22⁴ | 23/23 ✓ | partial³ | yes (ran pytest) | no (but *read* its coding-agent skill first) |
+| Metric | Raw model (baseline) | Hermes | OpenClaw |
+|--------|----------------------|--------|----------|
+| Harness | none (single API call, no tools) | Hermes 0.18.2 (`-z` oneshot, `--yolo`) | OpenClaw 2026.4.10 (`agent --local`, exec-policy yolo) |
+| Model | claude-sonnet-4.6 | claude-sonnet-4.6 | claude-sonnet-4.6 |
+| Date | 2026-07-12 | 2026-07-12 | 2026-07-12 |
+| Duration | 233 s | 155 s | **63 s** |
+| API calls | 1 | 13 | ~5 |
+| Tool calls | 0 | 12 | 4 |
+| Output tokens | 20,704 | 8,585 | **4,005** |
+| Cost | $0.31 | $0.295 | **~$0.22**⁴ |
+| Tests (verified) | 63/63 ✓ | 44/44 ✓ | 23/23 ✓ |
+| Spec adherence | partial³ | partial¹ | partial³ |
+| Self-verified | n/a (no tools) | yes (pytest + stdin smoke) | yes (pytest) |
+| Skill saved | n/a | no² | no (read coding-agent skill) |
 
 ¹ Delivered as a runnable package (`python -m jcsv`, `--help` shows prog "jcsv") but no standalone `jcsv` executable / console-script entry point.
 ² One-shot mode does not run the background-review fork, so Hermes's signature "learn a skill" loop did not fire.
