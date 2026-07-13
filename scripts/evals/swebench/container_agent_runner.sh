@@ -37,7 +37,13 @@ repo="$(printf '%s\n' "$info" | sed -n '1p')"; base="$(printf '%s\n' "$info" | s
 
 WORK="$(mktemp -d)"
 CNAME="sweval-$(printf '%s' "$IID" | tr -c 'a-zA-Z0-9_.-' '_')-$$"
-cleanup() { docker rm -f "$CNAME" >/dev/null 2>&1 || true; rm -rf "$WORK"; }
+cleanup() {
+  docker rm -f "$CNAME" >/dev/null 2>&1 || true
+  rm -rf "$WORK" 2>/dev/null
+  # the container writes some files as root; if the host rm couldn't remove them,
+  # nuke the dir from inside a throwaway root container (reuses the local image).
+  [ -d "$WORK" ] && docker run --rm -v "$WORK:$WORK" "$CONTAINER_IMAGE" rm -rf "$WORK" >/dev/null 2>&1 || true
+}
 trap cleanup EXIT
 
 { printf '%s\n\n' "$SWEBENCH_TASK_PREAMBLE"; printf '%s\n' "$info" | sed -n '3,$p'; } > "$WORK/problem.txt"
@@ -53,6 +59,9 @@ while :; do
   docker rm -f "$CNAME" >/dev/null 2>&1 || true
   docker run --rm --name "$CNAME" \
     --network bridge \
+    --memory "${CONTAINER_MEMORY:-6g}" --memory-swap "${CONTAINER_MEMORY:-6g}" \
+    --pids-limit "${CONTAINER_PIDS:-512}" --cpus "${CONTAINER_CPUS:-3}" \
+    --security-opt no-new-privileges \
     -v "$WORK:$WORK" -w "$WORK/repo" \
     -e OPENROUTER_API_KEY -e MODEL="$MODEL" \
     -e PROBLEM_FILE="$WORK/problem.txt" \
