@@ -38,10 +38,22 @@ echo "[$IID] cloning $repo @ ${base:0:10} ..."
 git clone --quiet "https://github.com/$repo" "$WORK/repo" || { echo "[$IID] clone failed" >&2; exit 1; }
 git -C "$WORK/repo" checkout --quiet "$base" || { echo "[$IID] checkout failed" >&2; exit 1; }
 
-echo "[$IID] running agent ..."
-( cd "$WORK/repo" && eval "$AGENT_CMD" ) || echo "[$IID] WARN: agent exited nonzero" >&2
-
-git -C "$WORK/repo" diff > "$WORK/patch.diff"
+# Run the agent, retrying only on a CRASH with no output (transient failures
+# like NullClaw's intermittent curl-wait race). A clean exit with an empty diff
+# is a legit "no change" and is NOT retried (don't burn budget). Real patch or
+# clean exit ends the loop.
+maxret="${AGENT_RETRIES:-2}"; attempt=0
+while :; do
+  attempt=$((attempt+1))
+  echo "[$IID] running agent (attempt $attempt) ..."
+  ( cd "$WORK/repo" && eval "$AGENT_CMD" ); rc=$?
+  git -C "$WORK/repo" diff > "$WORK/patch.diff"
+  if [ -s "$WORK/patch.diff" ]; then break; fi                 # produced a patch
+  if [ "$rc" -eq 0 ]; then break; fi                           # clean exit, no change
+  if [ "$attempt" -gt "$maxret" ]; then echo "[$IID] gave up after $attempt attempts (agent kept crashing)" >&2; break; fi
+  echo "[$IID] agent crashed (rc=$rc) with empty diff — retry $attempt/$maxret" >&2
+  git -C "$WORK/repo" reset -q --hard 2>/dev/null; git -C "$WORK/repo" clean -qfd 2>/dev/null
+done
 PATCH_FILE="$WORK/patch.diff" "$SWEBENCH_PY" - "$IID" "$MODEL" "$PREDS" <<'PY'
 import json, os, sys
 iid, model, preds = sys.argv[1], sys.argv[2], sys.argv[3]

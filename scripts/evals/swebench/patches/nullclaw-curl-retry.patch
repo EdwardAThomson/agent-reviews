@@ -1,0 +1,29 @@
+diff --git a/src/providers/compatible.zig b/src/providers/compatible.zig
+index e163c2e..f460829 100644
+--- a/src/providers/compatible.zig
++++ b/src/providers/compatible.zig
+@@ -1354,7 +1354,23 @@ pub const OpenAiCompatibleProvider = struct {
+                 // likely slow too; avoid blocking for the full message_timeout_secs.
+                 var fallback_request = request;
+                 fallback_request.timeout_secs = streamingFallbackTimeoutSecs(request.timeout_secs);
+-                var fallback = try chatImpl(ptr, allocator, fallback_request, model, temperature);
++                // The transient curl-wait race can hit the non-streaming fallback too.
++                // Retry it a few times before giving up, so an intermittent failure
++                // doesn't abort the whole agent run.
++                var fallback = blk: {
++                    var attempt: u8 = 0;
++                    while (true) : (attempt += 1) {
++                        const r = chatImpl(ptr, allocator, fallback_request, model, temperature) catch |e2| {
++                            if ((e2 == error.CurlWaitError or e2 == error.CurlFailed) and attempt < 3) {
++                                log.warn("{s} non-streaming fallback retry {} after {}", .{ self.name, attempt + 1, e2 });
++                                std.Thread.sleep(500 * std.time.ns_per_ms);
++                                continue;
++                            }
++                            return e2;
++                        };
++                        break :blk r;
++                    }
++                };
+                 return root.emitChatResponseAsStream(allocator, &fallback, callback, callback_ctx);
+             }
+             return err;
