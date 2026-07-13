@@ -1,7 +1,11 @@
 # NullClaw (Zig binary, already built on host WITH the curl-retry patch).
-# Build context = the nullclaw clone (so zig-out/bin/nullclaw is in context):
+# NOTE: the nullclaw clone ships a .dockerignore that EXCLUDES zig-out/, so the
+# clone can't be used as the build context directly. Stage the binary into a
+# clean context that mirrors the COPY path, then build from there:
+#   mkdir -p /tmp/nullclaw-image/zig-out/bin
+#   cp <clone>/zig-out/bin/nullclaw /tmp/nullclaw-image/zig-out/bin/
 #   sg docker -c 'docker build -f scripts/evals/swebench/dockerfiles/nullclaw.Dockerfile \
-#                   -t sweval-nullclaw /home/edward/Explore/agents/nullclaw'
+#                   -t sweval-nullclaw /tmp/nullclaw-image'
 # NullClaw shells out to `curl` for SSE, so curl MUST be present.
 FROM ubuntu:24.04
 RUN apt-get update \
