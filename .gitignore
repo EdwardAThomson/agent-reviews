@@ -27,3 +27,6 @@ SWE-agent/
 # Python
 __pycache__/
 *.pyc
+
+# eval run artifacts (local, not committed)
+data/evals/runs/
