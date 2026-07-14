@@ -1,0 +1,17 @@
+# SWE-bench Lite SMOKE slice — 2 easiest instances from the 20-instance pilot set.
+# Purpose: a fast per-harness GATE (~1-3 min/instance), NOT a score. It answers:
+#   1. plumbing works (clone -> agent edits -> git diff captured)
+#   2. FORMAT FIT: does this model produce edits THIS harness can apply?
+#      (a non-empty patch here = the harness/model combo is functional; an empty
+#       patch is the aider/DeepSeek whole-edit-format failure we want to catch
+#       BEFORE committing to a 2h full run)
+#   3. a rough capability hint (does it resolve the easy one?)
+# High variance: one instance is a gate, not a ranking. Full ranking needs pilot-20.
+#
+# Selection: smallest gold patches in the pilot set (difficulty proxy), from two
+# different repos, both fast-building with prebuilt swebench images, both validated
+# to resolve on gold.
+#   pytest-11143: gold 1 line / 1 hunk / 1 file
+#   django-10914: gold 1 line changed / 1 file / 2-line test patch (fastest to score)
+pytest-dev__pytest-11143
+django__django-10914
