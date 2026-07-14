@@ -5,5 +5,5 @@ FROM python:3.12-slim
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir aider-chat
+RUN pip install --no-cache-dir aider-chat==0.86.2
 # No ENTRYPOINT: container_agent_runner runs `bash -lc "timeout ... $AGENT_CMD"`.

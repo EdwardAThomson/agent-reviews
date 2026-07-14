@@ -30,3 +30,4 @@ __pycache__/
 
 # eval run artifacts (local, not committed)
 data/evals/runs/
+data/evals/sweep/

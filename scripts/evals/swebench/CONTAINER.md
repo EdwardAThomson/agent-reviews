@@ -20,7 +20,9 @@ prefix (a sandboxed run isn't flagged as an "unsafe host agent").
 | File | Role |
 |------|------|
 | `container_agent_runner.sh` | run one agent on one instance in a container; capture `git diff` |
-| `run_container.sh` | batch driver: loop over the instance list |
+| `run_container.sh` | batch driver over an instance list; **resumable** (skips done, never truncates) |
+| `run_chunk.sh` | pick which harnesses × which/how-many tasks; the everyday driver (see `RUNBOOK.md`) |
+| `run_smoke.sh` | 2-instance fit gate per harness (PASS/EMPTY) before any long run |
 | `dockerfiles/<agent>.Dockerfile` | per-agent image with the agent + its runtime |
 | `harnesses/container/<agent>.sh` | per-agent adapter: sets `CONTAINER_IMAGE` + `AGENT_CMD` |
 
@@ -43,5 +45,13 @@ quick `!` runs; the container adapters in `harnesses/container/` are the
 sandboxed path.
 
 ## Status
-Framework written, **not yet run**. Validate on one agent (Aider) end-to-end
-first (build image → 1 instance → score), then port the rest.
+All 7 images built; all 6 new agents pass the 2-instance smoke gate (see
+`harnesses.md`). mini-SWE-agent has a full run (10/20). Day-to-day runs go through
+`run_chunk.sh` in small chunks, see **`RUNBOOK.md`** for the collaborator guide.
+
+## Two lessons baked into the rig
+- **Always `systemd-inhibit` a run.** A suspended host freezes the container's
+  in-container `timeout` (it's a real-time timer) and kills the model API socket,
+  the run wedges silently. Wrap runs: `systemd-inhibit --what=sleep:idle:handle-lid-switch ...`.
+- **Runs are resumable** (`run_container.sh` skips already-recorded instances and
+  never truncates), so a killed/suspended chunk loses at most the one in-flight task.

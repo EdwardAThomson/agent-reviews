@@ -55,6 +55,23 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 - [Tier 2 — Capabilities](comparisons/tier2-capabilities.md) — Architecture, LLM integration, tools, security
 - [Tier 3 — Opinions](comparisons/tier3-opinions.md) — Code quality, maturity, innovation, red flags
 
+## Harness leaderboard (in progress)
+
+Separate from the code-level reviews above, we're running a controlled **empirical**
+comparison: many agent *harnesses* on the **same** 20 [SWE-bench Lite](https://www.swebench.com/)
+bug-fix tasks, with the **same fixed model** (`deepseek/deepseek-v4-pro` via OpenRouter),
+scored the **same** way (the official SWE-bench scorer). Holding the model and tasks
+constant isolates the harness's contribution, most published comparisons vary both.
+
+- **Current standing:** mini-SWE-agent is the baseline at **10/20 resolved**. Six
+  more agents (Hermes, Goose, Pi, OpenClaw, NullClaw, Nanobot) are containerized and
+  pass the smoke gate; full runs are in progress.
+- **Want to help run it?** See the **[collaborator runbook](scripts/evals/swebench/RUNBOOK.md)**,
+  it walks through setup and running a chunk end-to-end with your own OpenRouter key.
+- Design + status: [leaderboard plan](data/evals/harness-leaderboard-plan.md),
+  [harness registry](scripts/evals/swebench/harnesses.md),
+  [results](data/evals/results.md).
+
 ## Recommendations
 
 See [RECOMMENDATIONS.md](RECOMMENDATIONS.md) for practical guidance:
