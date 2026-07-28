@@ -50,3 +50,49 @@ With OpenClaw added, all three produced correct jcsv tools (23-63 tests, all pas
 - **Raw model** — slowest and most verbose (233 s, $0.31, 20,704 output tok in one turn), most tests (63) but never ran them.
 
 This confirms the plan: a harder, iteration-heavy task is needed to separate the harnesses on outcome, not just efficiency.
+
+## SWE-bench Lite: controlled harness leaderboard (PRELIMINARY)
+
+The harder, iteration-heavy task called for above. Many harnesses run the **same**
+SWE-bench Lite bug-fix instances, on the **same fixed model**
+(`deepseek/deepseek-v4-pro` via OpenRouter, chosen for cost), scored by the
+**official** SWE-bench harness (never an agent's self-report). Model + tasks held
+constant, so differences are attributable to the harness. Runs are containerized
+(sandboxed) and driven in small resumable chunks (`run_chunk.sh`); see
+`../../scripts/evals/swebench/RUNBOOK.md`.
+
+**⚠ PRELIMINARY — N=2 for the containerized agents.** Only 2 of the 20 pilot
+instances have been run across the field so far (both from astropy). Two instances
+is high-variance: read this as directional, not a ranking. The numbers will move as
+instances accumulate. Raw predictions live in `data/evals/sweep/<agent>.jsonl`
+(gitignored); scored reports in `data/evals/runs/frontier-<agent>/` (gitignored).
+
+### Frontier: 7 harnesses × 2 astropy instances (resolved / 2)
+
+| Harness | astropy-12907 | astropy-14182 | Resolved |
+|---------|:---:|:---:|:---:|
+| Hermes | ✓ | ✓ | **2/2** |
+| NullClaw | ✓ | ✓ | **2/2** |
+| mini-SWE-agent | ✓ | ✖ | 1/2 |
+| Goose | ✓ | ✖ | 1/2 |
+| Pi | ✓ | ✖ | 1/2 |
+| Nanobot | ✓ | ✖ | 1/2 |
+| OpenClaw | ✓ | ✖ | 1/2 |
+
+The instances behave very differently: **astropy-12907 is solved by every harness**
+(easy for this model regardless of scaffolding), while **astropy-14182 separates the
+field** — only Hermes and NullClaw resolve it. So on this tiny sample the harness does
+matter, and 14182 is the discriminating instance. Whether that holds is exactly what
+more instances will tell us.
+
+### Full-run baseline
+- **mini-SWE-agent: 10/20** on the full pilot set (the minimal-scaffolding baseline;
+  `run_id=mini_full2`). The only harness scored on all 20 so far.
+
+### Bigger picture (holds across everything run so far)
+Same DeepSeek model, wildly different output *by harness*: mini-SWE-agent resolves
+10/20, Aider (default whole-edit-format) produced empty patches on many instances
+(the model emits tool-call-style output Aider can't parse), and on the astropy pair
+Hermes/NullClaw clear both where others split. **The harness matters as much as the
+model** — a model that fails through one harness resolves through another on the
+identical instance. That is the headline finding; the exact ranking awaits more data.

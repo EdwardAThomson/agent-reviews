@@ -13,6 +13,11 @@ PREDS="${1:?usage: score.sh <preds> <run_id> [instance_list]}"
 RUN_ID="${2:?run_id required}"
 LIST="${3:-$INSTANCE_LIST}"
 
+# Resolve preds to an absolute path: we cd into $WORK below, which would break a
+# relative preds path.
+[ -f "$PREDS" ] || { echo "ERROR: preds file not found: $PREDS" >&2; exit 1; }
+PREDS="$(cd "$(dirname "$PREDS")" && pwd)/$(basename "$PREDS")"
+
 rig_check_docker || exit 1
 IDS=$(rig_instance_ids "$LIST" | tr '\n' ' ')
 WORK="$RESULTS_DIR/$RUN_ID"; mkdir -p "$WORK"
