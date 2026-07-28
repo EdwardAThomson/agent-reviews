@@ -68,6 +68,9 @@ constant isolates the harness's contribution, most published comparisons vary bo
   pass the smoke gate; full runs are in progress.
 - **Want to help run it?** See the **[collaborator runbook](scripts/evals/swebench/RUNBOOK.md)**,
   it walks through setup and running a chunk end-to-end with your own OpenRouter key.
+- **[Harness behavior findings](data/evals/harness-findings.md)** — how each harness
+  behaves with a fixed model (edit mechanism, verification, failure modes) and what it
+  implies for harness design. The behavioral payload, beyond the scores.
 - Design + status: [leaderboard plan](data/evals/harness-leaderboard-plan.md),
   [harness registry](scripts/evals/swebench/harnesses.md),
   [results](data/evals/results.md).
