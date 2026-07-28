@@ -61,38 +61,59 @@ constant, so differences are attributable to the harness. Runs are containerized
 (sandboxed) and driven in small resumable chunks (`run_chunk.sh`); see
 `../../scripts/evals/swebench/RUNBOOK.md`.
 
-**⚠ PRELIMINARY — N=2 for the containerized agents.** Only 2 of the 20 pilot
-instances have been run across the field so far (both from astropy). Two instances
-is high-variance: read this as directional, not a ranking. The numbers will move as
-instances accumulate. Raw predictions live in `data/evals/sweep/<agent>.jsonl`
-(gitignored); scored reports in `data/evals/runs/frontier-<agent>/` (gitignored).
+**⚠ PRELIMINARY — N=4 for the containerized agents.** Only 4 of the 20 pilot
+instances have been run across the field so far (2 astropy + 2 django), and 3 of the
+4 are "easy" (solved by everyone). So effectively **one** discriminating instance,
+this is directional, NOT a ranking. Numbers will move as instances accumulate. Raw
+predictions live in `data/evals/sweep/<agent>.jsonl` (gitignored); scored reports in
+`data/evals/runs/frontier*-<agent>/` (gitignored).
 
-### Frontier: 7 harnesses × 2 astropy instances (resolved / 2)
+### Frontier: 7 harnesses × 4 instances (resolved / 4)
 
-| Harness | astropy-12907 | astropy-14182 | Resolved |
-|---------|:---:|:---:|:---:|
-| Hermes | ✓ | ✓ | **2/2** |
-| NullClaw | ✓ | ✓ | **2/2** |
-| mini-SWE-agent | ✓ | ✖ | 1/2 |
-| Goose | ✓ | ✖ | 1/2 |
-| Pi | ✓ | ✖ | 1/2 |
-| Nanobot | ✓ | ✖ | 1/2 |
-| OpenClaw | ✓ | ✖ | 1/2 |
+| Harness | astropy-12907 | astropy-14182 | django-10914 | django-10924 | Resolved |
+|---------|:---:|:---:|:---:|:---:|:---:|
+| Hermes | ✓ | ✓ | ✓ | ✓ | **4/4** |
+| NullClaw | ✓ | ✓ | ✓ | ✖† | 3/4 |
+| mini-SWE-agent | ✓ | ✖ | ✓ | ✓ | 3/4 |
+| Goose | ✓ | ✖ | ✓ | ✓ | 3/4 |
+| Pi | ✓ | ✖ | ✓ | ✓ | 3/4 |
+| Nanobot | ✓ | ✖ | ✓ | ✓ | 3/4 |
+| OpenClaw | ✓ | ✖ | ✓ | ✓ | 3/4 |
 
-The instances behave very differently: **astropy-12907 is solved by every harness**
-(easy for this model regardless of scaffolding), while **astropy-14182 separates the
-field** — only Hermes and NullClaw resolve it. So on this tiny sample the harness does
-matter, and 14182 is the discriminating instance. Whether that holds is exactly what
-more instances will tell us.
+† **empty patch — the harness could not run** the instance (see failure modes below),
+not a wrong answer. NullClaw emptied on django-10924 on all 3 attempts.
+
+Three of the four instances (astropy-12907, django-10914, django-10924) are solved by
+every harness. **astropy-14182 is the sole discriminator** — only Hermes and NullClaw
+resolve it; the other five produce plausible-but-incomplete patches (e.g. OpenClaw fixed
+the *write* path but missed the *read* path the round-trip test also exercises).
+
+### Two distinct failure modes (a methodology point)
+Everyone below Hermes scores 3/4, but for opposite reasons — and the leaderboard should
+track these separately:
+- **Couldn't solve** (ran fine, wrong/incomplete patch): mini-SWE-agent, Goose, Pi,
+  Nanobot, OpenClaw all miss astropy-14182 this way.
+- **Couldn't run** (empty patch / crash): NullClaw on django-10924. NullClaw is
+  simultaneously one of the strongest *solvers* (it gets the hard astropy-14182, like
+  Hermes) and the least *robust* — its curl-subprocess streaming intermittently dies
+  with `SystemResources`, emptying on an instance everyone else finds trivial.
 
 ### Full-run baseline
-- **mini-SWE-agent: 10/20** on the full pilot set (the minimal-scaffolding baseline;
-  `run_id=mini_full2`). The only harness scored on all 20 so far.
+- **mini-SWE-agent: 10/20** on the full pilot set (`run_id=mini_full2`), the only
+  harness scored on all 20 so far. The minimal-scaffolding baseline.
+
+### Operational notes (from running it)
+- **2-wide parallel** (two agents concurrent, `CONTAINER_MEMORY=4g` each) works for
+  all agents except **NullClaw**, which needs to run solo at 6G and is still flaky.
+- Occasional OpenRouter **429s** appear under 2-way concurrency but self-heal (no
+  output impact observed) for every agent except NullClaw's separate curl issue.
+- An overnight run once **froze on host suspend**; runs are now wrapped in
+  `systemd-inhibit` and are resumable (skip-if-done), so interruptions are cheap.
 
 ### Bigger picture (holds across everything run so far)
 Same DeepSeek model, wildly different output *by harness*: mini-SWE-agent resolves
 10/20, Aider (default whole-edit-format) produced empty patches on many instances
-(the model emits tool-call-style output Aider can't parse), and on the astropy pair
-Hermes/NullClaw clear both where others split. **The harness matters as much as the
-model** — a model that fails through one harness resolves through another on the
+(the model emits tool-call-style output Aider can't parse), and on astropy-14182
+Hermes/NullClaw succeed where the rest fall short. **The harness matters as much as
+the model** — a model that fails through one harness resolves through another on the
 identical instance. That is the headline finding; the exact ranking awaits more data.
