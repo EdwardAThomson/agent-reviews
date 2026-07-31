@@ -61,7 +61,7 @@ constant, so differences are attributable to the harness. Runs are containerized
 (sandboxed) and driven in small resumable chunks (`run_chunk.sh`); see
 `../../scripts/evals/swebench/RUNBOOK.md`.
 
-**⚠ PRELIMINARY — N=4 for the containerized agents.** Only 4 of the 20 pilot
+**⚠ PRELIMINARY — N=4 for most containerized agents (N=6 for Hermes).** Only 4-6 of the 20 pilot
 instances have been run across the field so far (2 astropy + 2 django), and 3 of the
 4 are "easy" (solved by everyone). So effectively **one** discriminating instance,
 this is directional, NOT a ranking. Numbers will move as instances accumulate. Raw
@@ -97,6 +97,26 @@ track these separately:
   simultaneously one of the strongest *solvers* (it gets the hard astropy-14182, like
   Hermes) and the least *robust* — its curl-subprocess streaming intermittently dies
   with `SystemResources`, emptying on an instance everyone else finds trivial.
+
+### Hermes extended: matplotlib pair (0/2) — first misses, and why they matter
+Hermes alone was pushed 2 further instances (matplotlib-18869, matplotlib-22711),
+chosen because matplotlib was flagged as a genuinely hard repo. Result: **0/2**,
+Hermes's first misses, taking it to **4/6 overall** rather than a clean 4/4.
+
+Both misses trace to the same cause: matplotlib's real test suite couldn't run in
+the sandbox ("missing pre-existing C extension builds"), so Hermes fell back to
+**self-invented checks** — inputs it chose itself — and still reported confident
+success ("All 6 tests pass") in the exact same voice it uses when the real suite
+passes. Both patches were plausible but structurally wrong against the actual
+hidden tests (a 3-tuple where a 5-field namedtuple was required; a fix missing the
+orientation-aware branching the hidden `test_range_slider[vertical]` test needs).
+See [`harness-findings.md`](harness-findings.md) for the full writeup — this is a
+more important finding than the score: **a harness's confident verification
+language can be identical whether it verified against the real suite or a guess.**
+
+This is also a methodology lesson for the leaderboard itself: 4/4 on an
+easy-leaning sample looked like a clear win; 2 harder instances cut it to 4/6 and
+surfaced a real reliability problem. Small early samples overstate quality.
 
 ### Full-run baseline
 - **mini-SWE-agent: 10/20** on the full pilot set (`run_id=mini_full2`), the only
