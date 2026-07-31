@@ -52,12 +52,19 @@ OpenClaw 3/4 (all miss the one hard instance, astropy-14182); NullClaw 3/4 with 
 solved by everyone, so astropy-14182 was the only discriminator there.
 
 Hermes alone has since been extended two further (harder) instances, from
-matplotlib, and **went 0/2** — its first misses. So Hermes now stands at 4/6
-overall, not 4/4. That single extension did more to falsify "Hermes is just
-better" than the first four instances combined; see the Hermes section below for
-why it missed (a real and important finding, not just a lower score). This is the
-clearest evidence yet that a small, easy-leaning sample overstates apparent
-harness quality — more instances, especially harder ones, change the picture fast.
+matplotlib, and **went 0/2** — its first misses, taking it to 4/6 overall. That
+single extension did more to complicate "Hermes is just better" than the first
+four instances combined — but the *reason* matters, and it isn't what it first
+looked like. Cross-checked against mini-SWE-agent and Aider on the same fixed
+model: **both also miss the same two matplotlib instances.** Three architecturally
+unrelated harnesses, one model, the same outcome — that converges on a
+model-capability limit on these specific instances, not a Hermes-specific harness
+or sandbox failure (see the Hermes section for the full breakdown, including why
+one of the two was arguably unwinnable by any harness). The genuinely durable
+lesson from this extension isn't "Hermes is worse than it looked" — it's a
+transparency finding about how Hermes *reports* verification (below), plus a sharp
+reminder to check any single-harness anomaly against other harnesses on the same
+model before concluding anything about harness quality.
 
 ## Per-harness behavior
 
@@ -93,22 +100,37 @@ grounded (cites exact file:line and root cause), clean runs, no retries — the
 strongest behavioral correlate of its 4/4 there.
 
 **But on matplotlib (2 later instances, both unresolved) the same discipline
-inverted into false confidence.** Its own log admits the real suite couldn't run
-("Full pytest suite couldn't run due to pre-existing missing C extension builds"),
-so it fell back to **self-invented ad-hoc checks** — version strings and slider
-values *it chose itself* — and declared success ("All 6 tests pass") on both. Both
-patches were plausible but wrong against the real hidden tests: matplotlib-18869
-needed a 5-field namedtuple with specific dev/pre/post parsing (hermes returned a
-bare 3-tuple); matplotlib-22711 needed orientation-aware (`vertical` vs
-`horizontal`) handle logic that hermes's patch never added, despite the hidden
-tests being literally `test_range_slider[horizontal]` /
-`test_range_slider[vertical]`. **The confident "All N tests pass" framing was
-identical in both the true-verification and the fake-verification cases** — nothing
-in Hermes's own output distinguishes "I ran your test suite" from "I made up some
-inputs and checked them myself." That is the important correction: self-verification
-is only as trustworthy as the thing being verified against, and a harness that can't
-tell you which kind it just did is dangerous, because it launders a guess into the
-same confident language as a real result.
+produced false confidence — though the wrong *patches* are likely not Hermes's
+fault.** Its own log admits the real suite couldn't run ("Full pytest suite
+couldn't run due to pre-existing missing C extension builds"), so it fell back to
+**self-invented ad-hoc checks** — version strings and slider values *it chose
+itself* — and declared success ("All 6 tests pass") on both, in the exact same
+confident voice it uses when the real suite actually runs and passes. Nothing in
+Hermes's own output distinguishes "I ran your test suite" from "I made up some
+inputs and checked them myself." **That transparency gap is real and worth
+designing against, independent of whether it changed either outcome here:**
+
+- **matplotlib-18869**: the GitHub issue itself calls the requested shape
+  "bikeshedding" and offers two options; the gold patch's specific 5-field
+  namedtuple (mirroring `sys.version_info`) is a maintainer implementation choice,
+  not inferable from the issue, the code, or (by SWE-bench design) any test visible
+  before submission. mini-SWE-agent, a completely different harness on the same
+  model, also misses this instance. A working sandbox would not have told Hermes
+  the maintainer's specific choice. This one looks unwinnable regardless of harness.
+- **matplotlib-22711**: Hermes fixed a real bug matching the literal repro (a
+  5-vertex write into a 4-vertex polygon) but missed the broader orientation-aware
+  fix the hidden tests require. This looked like the stronger candidate for
+  "sandbox handicapped it" — until we checked: **mini-SWE-agent and Aider, two more
+  independently-designed harnesses on the same model, also miss it.** Three
+  unrelated harnesses converging on the same miss is evidence the model doesn't
+  reliably reach this fix here, not that Hermes's specific tooling gap was decisive.
+
+So the accurate framing is narrower than the score alone suggests: the **outcome**
+(0/2) is likely a model-capability limit on these two instances, cross-validated
+against other harnesses; the **reporting behavior** (confident, undifferentiated
+"tests pass" language regardless of what was actually checked) is a genuine and
+separate harness-design flaw, worth fixing on its own merits, not because it's
+proven to have caused a wrong answer here.
 
 ### Pi — terse and effective, edits in place
 Edits the cloned working tree directly (not emitted diffs): "Here's a summary of the
@@ -185,8 +207,11 @@ nothing because model output and harness parser disagreed on modality. (A differ
    only by giving Hermes a harder repo: an agent that *usually* verifies for real,
    silently falls back to self-invented checks when the real suite is unreachable
    (missing C-extension builds, on matplotlib), and reports success in the *same
-   confident voice either way* ("All N tests pass" — true on astropy/django, false on
-   matplotlib). A reader of the transcript cannot tell the difference. Design
+   confident voice either way* ("All N tests pass" — a real signal on astropy/django,
+   an unverifiable one on matplotlib, where the patches also happened to be wrong,
+   though cross-harness checks suggest that particular wrongness was a model limit,
+   not caused by the fallback itself). A reader of the transcript cannot tell a real
+   verification from an invented one either way. Design
    consequences: (a) **the sandbox must contain the project's toolchain**, or
    verification is impossible regardless of intent; (b) a harness must **tag its own
    verification provenance** — ran the real suite / suite unavailable, verified
@@ -257,3 +282,11 @@ nothing because model output and harness parser disagreed on modality. (A differ
 - Several harnesses log only final summaries; deeper turn-level behavioral profiling
   (tool-call counts, exploration depth, verification steps) would sharpen the design
   conclusions. A harness we build should log these by construction.
+- **Methodology note, worth repeating deliberately:** before attributing any single
+  harness's miss to that harness's design or sandbox, check whether other harnesses
+  on the same fixed model also miss it. We did this reactively for the matplotlib
+  instances (checking mini-SWE-agent and Aider) and it reversed the initial
+  conclusion — from "Hermes's sandbox handicap caused wrong answers" to "these are
+  likely model-capability limits, cross-validated across three unrelated harnesses."
+  Future extensions should run this cross-check as standard practice, not only when
+  a result looks surprising.

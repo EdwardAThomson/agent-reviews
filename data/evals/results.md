@@ -98,21 +98,33 @@ track these separately:
   Hermes) and the least *robust* — its curl-subprocess streaming intermittently dies
   with `SystemResources`, emptying on an instance everyone else finds trivial.
 
-### Hermes extended: matplotlib pair (0/2) — first misses, and why they matter
+### Hermes extended: matplotlib pair (0/2) — first misses, and what they actually show
 Hermes alone was pushed 2 further instances (matplotlib-18869, matplotlib-22711),
 chosen because matplotlib was flagged as a genuinely hard repo. Result: **0/2**,
 Hermes's first misses, taking it to **4/6 overall** rather than a clean 4/4.
 
-Both misses trace to the same cause: matplotlib's real test suite couldn't run in
-the sandbox ("missing pre-existing C extension builds"), so Hermes fell back to
-**self-invented checks** — inputs it chose itself — and still reported confident
-success ("All 6 tests pass") in the exact same voice it uses when the real suite
-passes. Both patches were plausible but structurally wrong against the actual
-hidden tests (a 3-tuple where a 5-field namedtuple was required; a fix missing the
-orientation-aware branching the hidden `test_range_slider[vertical]` test needs).
-See [`harness-findings.md`](harness-findings.md) for the full writeup — this is a
-more important finding than the score: **a harness's confident verification
-language can be identical whether it verified against the real suite or a guess.**
+**Cross-checked against two other harnesses on the same fixed model, this looks
+like a model-capability limit, not a Hermes or sandbox artifact.**
+mini-SWE-agent (a completely different, minimal-scaffolding harness) also misses
+both instances; Aider also misses matplotlib-22711 (its matplotlib-18869 attempt
+was an empty patch — a separate, format-mismatch issue, uninformative here). Three
+architecturally unrelated harnesses, one model, the same outcome — if the harness
+were the bottleneck, at least one of the three would likely have gotten through.
+matplotlib-18869 is additionally explained by the GitHub issue itself: the author
+explicitly calls the exact requested shape "bikeshedding," and the gold patch's
+5-field namedtuple (mirroring `sys.version_info`) is a maintainer implementation
+choice not inferable from the issue, the code, or any test an agent can see before
+submitting (SWE-bench's acceptance test is applied only during scoring, never
+exposed to the agent — true for every harness, not a Hermes-specific gap).
+
+What *does* still hold, independent of whether the task was winnable: Hermes's own
+sandbox lacked matplotlib entirely (confirmed: `ModuleNotFoundError`), so it
+verified against **self-invented checks** and reported success ("All 6 tests pass")
+in the exact same confident voice it uses when the real suite actually runs. That
+transparency gap, a harness not distinguishing "I verified for real" from "I
+convinced myself", is a valid, general design lesson regardless of whether it
+changed the outcome on these two particular instances. See
+[`harness-findings.md`](harness-findings.md) for the full writeup.
 
 This is also a methodology lesson for the leaderboard itself: 4/4 on an
 easy-leaning sample looked like a clear win; 2 harder instances cut it to 4/6 and
