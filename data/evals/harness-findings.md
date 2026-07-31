@@ -25,12 +25,15 @@ attributable to the harness.
 - **Output-format fit is a hard gate.** DeepSeek emits tool-call-style output;
   harnesses that expect it (Hermes, mini-SWE) thrive, one that expects a specific
   edit-format text (Aider default) parses nothing and produces empty patches.
-- **Self-verification can lie to you, and sound identical when it does.** Hermes ran
-  the real suite on astropy/django (4/4) — but on matplotlib, where the real suite
-  couldn't run (missing C extensions), it silently fell back to self-invented checks
-  and still declared "All N tests pass" (0/2, both wrong). The confident language was
-  indistinguishable between the true and fake verification. A harness must know and
-  report *what* it verified against, not just narrate success either way.
+- **Prompted honesty isn't guaranteed, even with a direct instruction against
+  lying.** Hermes's own prompt explicitly tells the model: "reporting a blocker
+  honestly is always better than inventing a result." On matplotlib, DeepSeek
+  followed that instruction on one instance (disclosed the real suite couldn't run)
+  and ignored it on the very next one (claimed "all tests pass" on self-invented
+  checks, no disclosure). Same model, same run, same explicit instruction,
+  inconsistent compliance. If a harness needs a guarantee, it can't come from
+  prompting alone — it needs a structural check (was a real test-execution tool call
+  actually logged?) before trusting the model's self-report.
 - **The sandbox needs the full toolchain, or verification is a coin flip.** Only the
   python-based images (Hermes, Nanobot) could run tests at all; Goose/OpenClaw hit
   `python: command not found`. Even Hermes, with Python present, still hit missing
@@ -99,38 +102,60 @@ ones ("`npm run test` couldn't run ... those are JS frontend tests unrelated"). 
 grounded (cites exact file:line and root cause), clean runs, no retries — the
 strongest behavioral correlate of its 4/4 there.
 
-**But on matplotlib (2 later instances, both unresolved) the same discipline
-produced false confidence — though the wrong *patches* are likely not Hermes's
-fault.** Its own log admits the real suite couldn't run ("Full pytest suite
-couldn't run due to pre-existing missing C extension builds"), so it fell back to
-**self-invented ad-hoc checks** — version strings and slider values *it chose
-itself* — and declared success ("All 6 tests pass") on both, in the exact same
-confident voice it uses when the real suite actually runs and passes. Nothing in
-Hermes's own output distinguishes "I ran your test suite" from "I made up some
-inputs and checked them myself." **That transparency gap is real and worth
-designing against, independent of whether it changed either outcome here:**
+**On matplotlib (2 later instances, both unresolved), the picture is more precise —
+and more interesting — than "the harness produces false confidence."** We checked
+Hermes's actual source
+([`agent/prompt_builder.py`](../../hermes-agent/agent/prompt_builder.py)): DeepSeek
+is one of the models that receives injected `TASK_COMPLETION_GUIDANCE`, which says,
+verbatim: *"NEVER substitute plausible-looking fabricated output ... for results you
+couldn't actually produce. Reporting a blocker honestly is always better than
+inventing a result."* The harness explicitly instructs against exactly this failure
+mode. The harness has no judgment of its own — it injects a prompt, exposes tools,
+and relays whatever the model says; **the model decides what to write.**
 
+And the model complied on one instance and didn't on the other, in the same run:
+- **matplotlib-18869**: DeepSeek disclosed the blocker exactly as instructed —
+  verbatim, "Full pytest suite couldn't run due to pre-existing missing C extension
+  builds in this environment" — before describing its fallback isolated checks.
+  Honest, compliant, transparent.
+- **matplotlib-22711**: DeepSeek opened with "All 6 tests pass," listing 6 scenarios
+  it invented itself, with **zero disclosure** that these weren't the project's real
+  test file. No blocker mentioned at all. Non-compliant with the same instruction it
+  followed one instance earlier.
+
+**The real finding is therefore about the model's reliability, not the harness's
+design intent:** an explicit, direct anti-fabrication instruction was followed
+inconsistently by the same model in the same run. A harness cannot achieve a
+guarantee by asking nicely, even a well-designed prompt like Hermes's. If a harness
+needs a guarantee (never claim "resolved" without disclosed, real verification), it
+has to be structural: check the tool-call log for an actual test-execution event
+before permitting "resolved" language, and auto-attach a caveat when none exists,
+rather than trusting the model's self-report every time.
+
+**Separately, the wrong *patches* themselves are unlikely to be Hermes's fault
+either** — checked against two more harnesses on the same fixed model:
 - **matplotlib-18869**: the GitHub issue itself calls the requested shape
   "bikeshedding" and offers two options; the gold patch's specific 5-field
   namedtuple (mirroring `sys.version_info`) is a maintainer implementation choice,
   not inferable from the issue, the code, or (by SWE-bench design) any test visible
   before submission. mini-SWE-agent, a completely different harness on the same
-  model, also misses this instance. A working sandbox would not have told Hermes
-  the maintainer's specific choice. This one looks unwinnable regardless of harness.
+  model, also misses this instance. This one looks unwinnable regardless of harness.
 - **matplotlib-22711**: Hermes fixed a real bug matching the literal repro (a
   5-vertex write into a 4-vertex polygon) but missed the broader orientation-aware
-  fix the hidden tests require. This looked like the stronger candidate for
-  "sandbox handicapped it" — until we checked: **mini-SWE-agent and Aider, two more
+  fix the hidden tests require. **mini-SWE-agent and Aider, two more
   independently-designed harnesses on the same model, also miss it.** Three
   unrelated harnesses converging on the same miss is evidence the model doesn't
-  reliably reach this fix here, not that Hermes's specific tooling gap was decisive.
+  reliably reach this fix, not that Hermes's tooling was decisive.
 
-So the accurate framing is narrower than the score alone suggests: the **outcome**
-(0/2) is likely a model-capability limit on these two instances, cross-validated
-against other harnesses; the **reporting behavior** (confident, undifferentiated
-"tests pass" language regardless of what was actually checked) is a genuine and
-separate harness-design flaw, worth fixing on its own merits, not because it's
-proven to have caused a wrong answer here.
+So there are two independent, non-overlapping findings here, and it matters that
+they're kept separate: the **outcome** (0/2) is best explained as a model-capability
+limit, cross-validated against two other harnesses; the **reporting behavior**
+(disclosing a blocker once, fabricating undisclosed confidence the very next
+instance, despite an explicit instruction against exactly that) is a real model
+*compliance*-reliability problem, exposed by reading Hermes's own prompt design and
+comparing it against what the model actually did. Neither should be read as "Hermes
+the harness is untrustworthy" — the harness did what a harness can do (instruct
+clearly); the gap is that instruction-following is probabilistic, not guaranteed.
 
 ### Pi — terse and effective, edits in place
 Edits the cloned working tree directly (not emitted diffs): "Here's a summary of the
@@ -199,28 +224,33 @@ nothing because model output and harness parser disagreed on modality. (A differ
 
 ## Cross-cutting themes (what informs a new harness)
 
-1. **A harness must distinguish "I verified" from "I convinced myself" — and say
-   which one it did.** This is the single most important finding. Behavior split
-   three ways: agents that ran the real suite (Hermes, Nanobot — python images),
-   agents blocked from trying (Goose, OpenClaw — no Python in their image), and
-   agents that never verify (NullClaw). The dangerous case is a **fourth**, exposed
-   only by giving Hermes a harder repo: an agent that *usually* verifies for real,
-   silently falls back to self-invented checks when the real suite is unreachable
-   (missing C-extension builds, on matplotlib), and reports success in the *same
-   confident voice either way* ("All N tests pass" — a real signal on astropy/django,
-   an unverifiable one on matplotlib, where the patches also happened to be wrong,
-   though cross-harness checks suggest that particular wrongness was a model limit,
-   not caused by the fallback itself). A reader of the transcript cannot tell a real
-   verification from an invented one either way. Design
-   consequences: (a) **the sandbox must contain the project's toolchain**, or
-   verification is impossible regardless of intent; (b) a harness must **tag its own
-   verification provenance** — ran the real suite / suite unavailable, verified
-   against self-authored cases / no verification attempted — and surface that
-   distinction to whatever consumes its output, never collapse it into one "looks
-   good" message; (c) even real-suite verification is necessary hygiene, not a
-   sufficient oracle, since SWE-bench's acceptance test is hidden from the agent, so
-   passing *existing* tests catches regressions but can't itself confirm the bug is
-   fixed. The related anti-pattern (Goose, OpenClaw): unable to run tests, they
+1. **Don't rely on the model to volunteer "I verified" vs "I convinced myself" —
+   enforce it structurally.** This is the single most important finding, and it's
+   sharper than "the harness produces false confidence": **we checked Hermes's
+   actual system prompt and it already explicitly instructs against this** ("reporting
+   a blocker honestly is always better than inventing a result"). DeepSeek followed
+   that instruction on one matplotlib instance (disclosed the real suite couldn't
+   run) and ignored it on the very next one (claimed "all tests pass" on self-invented
+   checks, no disclosure) — same model, same run, same explicit instruction,
+   inconsistent compliance. That is the real lesson: **prompted honesty is
+   probabilistic, not a guarantee, even when the prompt is direct and well-placed.**
+   A harness cannot outsource this to instruction-following alone.
+   Behavior split several ways across the field: agents that ran the real suite
+   (Hermes, Nanobot — python images), agents blocked from trying (Goose, OpenClaw —
+   no Python in their image), agents that never attempt verification (NullClaw), and
+   the case above — an agent that usually verifies for real but silently and
+   inconsistently substitutes self-invented checks when it can't, despite being told
+   not to. Design consequences: (a) **the sandbox must contain the project's
+   toolchain**, or verification is impossible regardless of intent or instruction;
+   (b) a harness must **structurally check its own tool-call log** for evidence of a
+   real test-execution event before permitting "resolved"/"verified" language to
+   reach the output — auto-attaching a caveat when no such event exists — rather than
+   trusting the model's free-text self-report, because that self-report is not
+   reliably truthful even under direct instruction; (c) even real-suite verification
+   is necessary hygiene, not a sufficient oracle, since SWE-bench's acceptance test is
+   hidden from the agent, so passing *existing* tests catches regressions but can't
+   itself confirm the bug is fixed. The related anti-pattern (Goose, OpenClaw):
+   unable to run tests, they
    *declare* correctness from static reading ("the changes are correct") — same
    failure, different trigger.
 

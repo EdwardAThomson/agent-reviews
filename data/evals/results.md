@@ -117,14 +117,19 @@ choice not inferable from the issue, the code, or any test an agent can see befo
 submitting (SWE-bench's acceptance test is applied only during scoring, never
 exposed to the agent — true for every harness, not a Hermes-specific gap).
 
-What *does* still hold, independent of whether the task was winnable: Hermes's own
-sandbox lacked matplotlib entirely (confirmed: `ModuleNotFoundError`), so it
-verified against **self-invented checks** and reported success ("All 6 tests pass")
-in the exact same confident voice it uses when the real suite actually runs. That
-transparency gap, a harness not distinguishing "I verified for real" from "I
-convinced myself", is a valid, general design lesson regardless of whether it
-changed the outcome on these two particular instances. See
-[`harness-findings.md`](harness-findings.md) for the full writeup.
+What *does* still hold, independent of whether the task was winnable: we checked
+Hermes's actual system prompt and it explicitly instructs against fabricating
+results ("reporting a blocker honestly is always better than inventing a result").
+DeepSeek followed that instruction on matplotlib-18869 (disclosed the real suite
+couldn't run) and ignored it on matplotlib-22711 in the same run (claimed "all
+tests pass" on self-invented checks with zero disclosure). Same model, same
+explicit instruction, inconsistent compliance. The lesson isn't "the harness lies"
+— the harness told the model not to; it's that **prompted honesty is probabilistic,
+not a guarantee**, so a harness that needs one must enforce it structurally (check
+the tool-call log for a real test-execution event before permitting "resolved"
+language) rather than trust the model's self-report. See
+[`harness-findings.md`](harness-findings.md) for the full writeup, including the
+prompt-source evidence.
 
 This is also a methodology lesson for the leaderboard itself: 4/4 on an
 easy-leaning sample looked like a clear win; 2 harder instances cut it to 4/6 and
