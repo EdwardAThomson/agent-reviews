@@ -77,6 +77,7 @@ The categories below are sized by team, but the tools themselves don't enforce s
 | [NanoClaw](reviews/general-purpose/nanoclaw.md) | Minimal (3 deps, 8.5k LOC), container-isolated, per-group security. Easy to audit. | Teams wanting a WhatsApp/Slack/Telegram AI assistant they fully control, with strong security guarantees. |
 | [Nanobot](reviews/general-purpose/nanobot.md) | 12 channels including WeChat, Feishu, DingTalk. 25+ providers. Clean Python codebase. | Teams operating in Asian markets or needing Chinese messaging platform support. |
 | [Pi `mom`](reviews/coding/pi.md) | Slack-native bot with self-managing tools (installs its own CLIs), optional Docker sandbox (`--sandbox=docker:<name>`), persistent workspace. | Slack-first teams who want an AI assistant that provisions its own tooling and can be isolated from the host via Docker. |
+| [QM](reviews/general-purpose/qm.md) | Multi-tenant from the start — per-person and per-room scoped memory/files/sandboxes under one org agent, admin-controlled security posture (Strict/Auto/Dangerous), four swappable coding-agent harnesses (Pi/OpenCode/Codex/Claude Code). MIT. | Teams that want the whole org sharing one Slack + web agent with real governance (approval gates, audit, per-scope isolation), not just a personal bot deployed org-wide. |
 
 **For building custom agents / agent infrastructure:**
 
@@ -142,7 +143,7 @@ The categories below are sized by team, but the tools themselves don't enforce s
 
 | Lock-in level | Agents |
 |---------------|--------|
-| None (multi-provider) | Cline (46), Goose (25+), NullClaw (95+), Nanobot (25+), Aider (litellm), OpenHands (litellm), Pydantic AI (33), CrewAI (litellm), Pi (17) |
+| None (multi-provider) | Cline (46), Goose (25+), NullClaw (95+), Nanobot (25+), Aider (litellm), OpenHands (litellm), Pydantic AI (33), CrewAI (litellm), Pi (17), QM (4 swappable harnesses: Pi/OpenCode/Codex/Claude Code) |
 | Moderate (shaped by one vendor / ecosystem) | OpenClaw (Claude-shaped), AutoGPT (multi but OpenAI-centric), LangGraph (LangSmith observability + closed-source server runtime), MAF (Azure-adjacent integrations) |
 | High (single vendor) | NanoClaw (Claude-only), Codex CLI (OpenAI Responses API), Gemini CLI (Gemini-only) |
 
@@ -182,7 +183,7 @@ The categories below are sized by team, but the tools themselves don't enforce s
 |------|-----------------|------------|
 | **Vendor lock-in** | NanoClaw, Codex CLI, Gemini CLI | Use multi-provider tools (Cline, Aider, OpenHands) or accept the trade-off for a superior single-vendor experience |
 | **Security (unsandboxed execution)** | Aider, CLIO, Pi | Aider and CLIO prompt before each command; Pi has no default approval gate — supervise output or add approval via a `BashOperations` extension. Use in git repos where `git reset` provides a safety net. For Pi with `mom` on Slack, enable `--sandbox=docker:<name>` |
-| **Operational complexity** | AutoGPT (15+ services), OpenHands (Docker/K8s) | Start with local-first tools. Only adopt complex deployments when the value justifies the ops burden |
+| **Operational complexity** | AutoGPT (15+ services), OpenHands (Docker/K8s), QM (5 deployable services + Postgres + Docker/AWS-microVM sandboxing) | Start with local-first tools. Only adopt complex deployments when the value justifies the ops burden |
 | **Sustainability (bus factor)** | CLIO (1 human), GBrain (1 human, 5 days old), NanoClaw (small team) | Assess whether you could fork and maintain if the project stalls. Prefer projects with multiple active contributors |
 | **Maintenance mode / deprecation** | AutoGen (Microsoft directs to MAF), SWE-agent (entering maintenance), Plandex (dormant since Oct 2025) | Don't start new production projects on maintenance-mode code. Existing deployments get bug fixes but no new features. |
 | **Licensing restrictions** | AutoGPT (PolyForm Shield), CLIO (GPL-3.0) | Legal review before adoption. MIT and Apache-2.0 are safest for commercial use |
@@ -220,6 +221,7 @@ What do you need?
 │  ├─ Multi-channel, Asian messaging → Nanobot
 │  ├─ Maximum features, 20+ channels → OpenClaw
 │  ├─ Slack-native with optional Docker sandbox → Pi `mom`
+│  ├─ Whole org, multi-tenant, admin governance + swappable harness → QM
 │  └─ Edge / embedded / constrained hardware → NullClaw
 │
 └─ Building agent infrastructure

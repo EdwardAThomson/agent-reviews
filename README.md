@@ -19,6 +19,7 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 | [NanoClaw](reviews/general-purpose/nanoclaw.md) | TypeScript | [qwibitai/nanoclaw](https://github.com/qwibitai/nanoclaw) | |
 | [Nanobot](reviews/general-purpose/nanobot.md) | Python | [HKUDS/nanobot](https://github.com/HKUDS/nanobot) | |
 | [Hermes Agent](reviews/general-purpose/hermes-agent.md) | Python | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) | |
+| [QM](reviews/general-purpose/qm.md) | TypeScript | [yc-software/qm](https://github.com/yc-software/qm) | |
 
 ### Category B — Coding Agents
 

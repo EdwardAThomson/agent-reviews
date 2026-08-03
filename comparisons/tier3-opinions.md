@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-07-12
+**Generated:** 2026-08-03
 **Source data:** [data/agents/](../data/agents/)
 
 **Note:** These are subjective assessments backed by evidence from the source code. See individual reviews for detailed justifications.
@@ -39,6 +39,7 @@
 | [Pi](../reviews/coding/pi.md) | 4/5 | production | 4/5 | none |
 | [Plandex](../reviews/coding/plandex.md) | 3/5 | dormant | 2/5 | none |
 | [Pydantic AI](../reviews/frameworks/pydantic-ai.md) | 4.5/5 | production | 4.5/5 | none |
+| [QM](../reviews/general-purpose/qm.md) | 4/5 | production | 4/5 | none |
 | [SWE-agent](../reviews/coding/swe-agent.md) | 4/5 | maintenance | 3.5/5 | none |
 
 ## Innovation Highlights
@@ -67,6 +68,7 @@
 | Pi | Faux provider for deterministic tool-use tests; BashOperations pluggable interface for shell execution; Anti-MCP stance — skills as CLI tools instead of MCP servers; Slack-native mom with opt-in Docker sandbox; Pi packages as npm-distributed extensions/skills/templates/themes |
 | Plandex | Cumulative diff review sandbox pattern; 9-role multi-model system with 16+ curated packs; Plan/branch/rewind version-control-for-AI-interactions; Staged planning-then-implementation architecture |
 | Pydantic AI | Generic typing of agents — Agent[DepsT, OutputT] catches dependency mismatches at type-check time (unique); RunContext[DepsT] dependency injection gives tools typed access to shared state without globals; Deferring durable execution to real orchestrators (Temporal/DBOS/Prefect) rather than reinventing a checkpointer; Pydantic Evals as first-class concern with typed Case[Input, Output] and composable Evaluator; Real API recordings over mocks — quality-forcing function; Builtin tools with provider-adaptive implementations (DuckDuckGo/Tavily/Exa) |
+| QM | Person- and room-scoped memory/files/keychain/sandbox/crons under one org-level agent; Four coding-agent harnesses behind one interface with admin-controlled per-org/per-scope allowlisting; Command-policy scanner that unwraps real shell obfuscation before matching, not a naive regex; Private-fork-not-GitHub-fork model with tooling (update-qm, upstream-pr) enforcing the core/org boundary both ways |
 | SWE-agent | Agent-Computer Interface (ACI) concept — interface between agent and environment matters as much as the model; Tool bundle system with shell scripts + YAML schemas; Multiple output parsers (FunctionCalling / ThoughtAction / XML / JSON / BashCodeBlock); Review/retry loop architecture (ScoreRetryLoop, ChooserRetryLoop); Container-side state commands as environment interface |
 
 ## Red Flags
@@ -95,6 +97,7 @@
 | Pi | No default bash sandbox (user must install or write a BashOperations extension); One primary author despite 204 contributors (bus factor); 22 runtime deps in coding-agent alone; Active encouragement to publish session transcripts to Hugging Face |
 | Plandex | Cloud service shut down October 2025 — strongest signal of reduced investment; Near-zero test coverage (6 test files across ~250 source files); Single maintainer (bus factor of 1); Arbitrary code execution via LLM-authored _apply.sh with only optional cgroup isolation; Python subprocess dependency complicates debugging and deployment; 6+ months inactive — no commits since October 2025 |
 | Pydantic AI | No built-in multi-agent orchestration — single-agent-first design. Need to build your own patterns with pydantic-graph.; Logfire ecosystem gravity — first-class instrumentation flows through Pydantic's commercial observability platform; Optional dependency sprawl (37+ groups) — users must think about what to install; No server runtime — wire up A2A/AG-UI/FastAPI yourself (arguably a feature); Large core files — agent/__init__.py (2734), messages.py (2553), _agent_graph.py (1945), mcp.py (1483) |
+| QM | Egress enforcement is "none" by default on both sandbox backends; Command policy is documented and confirmed as bypassable text classification; Sandbox credentials for logged-in services sit on disk in plaintext while in use; Contribution model accepts only informal proposals, not code, from outside contributors |
 | SWE-agent | Entering maintenance mode — README warns development has shifted to mini-SWE-agent; API key leakage — docstring warns propagated env var values can appear in debug log files; Possible logic inversion bug at run_single.py:153; Synchronous asyncio.run() bridge around SWE-ReX may break in existing event loops |
 
 ## Maturity Spectrum
@@ -121,6 +124,7 @@
 | OpenHands | production |
 | Pi | production |
 | Pydantic AI | production |
+| QM | production |
 | AutoGen | maintenance |
 | SWE-agent | maintenance |
 | Plandex | dormant |
@@ -151,6 +155,7 @@
 | Pi | high | TypeScript-fluent, terminal-first developer who wants a harness to extend rather than fight. |
 | Plandex | moderate | Self-hosted users with Docker+PostgreSQL capacity wanting a capable coding agent with strong context management for large projects — but prepared for potential abandonment. |
 | Pydantic AI | high | Python teams who actually care about type safety — mypy/pyright strict users. Teams already using Pydantic (FastAPI, data validation). Teams needing evaluation infrastructure or durable execution. |
+| QM | high | An organization wanting one Slack- and web-reachable agent shared across employees with per-person/per-room isolation, not committed to a single model vendor's agent loop. |
 | SWE-agent | moderate | Researchers or practitioners running SWE-bench at scale; reference implementation for agent design. Team recommends mini-SWE-agent for new projects. |
 
 ## Overall Summaries
@@ -242,6 +247,10 @@ An architecturally innovative coding agent with genuinely novel plan/branch/sand
 ### Pydantic AI
 
 The most type-safe agent framework in Python, and the only one where agent dependencies and outputs are generic parameters validated at type-check time. Built by the Pydantic team with the same engineering culture — strict typing, small composable primitives, real-API tests, backward-compatibility discipline. Ships with evaluation, state machines, durable execution integrations, first-class MCP/A2A/AG-UI, and a clean CLI. Weaker on multi-agent orchestration and doesn't ship a server runtime. Strongest choice for Python teams prioritizing type safety.
+
+### QM
+
+QM is a production-shaped, multi-tenant org agent that treats the coding-agent harness as a swappable substrate — Pi, OpenCode, Codex, and Claude Code all sit behind one interface, chosen per organization and scope through an admin-controlled allowlist. The interface-first design (harness, sandbox, session store, durable map) is applied consistently, and SECURITY.md is candid about real limitations rather than glossing over them. The cost is operational weight: five deployable services, Postgres persistence, and Docker/AWS-microVM sandboxing put a floor under how simple a deployment can be.
 
 ### SWE-agent
 

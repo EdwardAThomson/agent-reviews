@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-07-12
+**Generated:** 2026-08-03
 **Source data:** [data/agents/](../data/agents/)
 
 ---
@@ -37,6 +37,7 @@
 | [Pi](../reviews/coding/pi.md) | Coding | TypeScript | MIT | A minimal TypeScript terminal coding harness built for extension over feature sprawl: 7-package monorepo, 17 LLM providers, four run modes (interactive/print/RPC/SDK), plus a Slack bot and GPU-pod deployment tool. |
 | [Plandex](../reviews/coding/plandex.md) | Coding | Go, Python | MIT | A Go-based AI coding agent for large projects with a novel plan/branch/sandbox workflow, 9 specialized model roles, and cumulative diff review. Cloud service wound down October 2025; self-hosted only. |
 | [Pydantic AI](../reviews/frameworks/pydantic-ai.md) | Framework | Python | MIT | GenAI agent framework, the Pydantic way — production-stable type-safe Python framework from the Pydantic team, with generic Agent[DepsT, OutputT] dependency injection, 33 model providers, first-class MCP/A2A/AG-UI protocols, durable execution via Temporal/DBOS/Prefect, Pydantic Evals, and Logfire instrumentation. |
+| [QM](../reviews/general-purpose/qm.md) | General | TypeScript | MIT | A multiplayer agent harness for work, in Slack and on the web. Designed for startups: each employee gets an isolated workspace and can also collaborate with the agent in channels, group messages, and projects, with scoped memory, files, keychain, permissions, crons, web apps, and a durable sandbox per person and per room. |
 | [SWE-agent](../reviews/coding/swe-agent.md) | Coding | Python | MIT | A research-grade AI coding agent from Princeton (NeurIPS 2024) that pioneered the Agent-Computer Interface concept — takes GitHub issues and autonomously fixes them. State-of-the-art on SWE-bench among open-source projects. |
 
 ---
@@ -67,6 +68,7 @@
 | Pi | 175k | 607 | 60 | 3686 | 204 |
 | Plandex | 50k | 250 | — | — | — |
 | Pydantic AI | 253k | 509 | 6 | — | — |
+| QM | 235k | 1042 | 28 | — | — |
 | SWE-agent | 11.4k | 60 | 22 | — | — |
 
 ---
@@ -97,6 +99,7 @@
 | Pi | Minimal core, extend-don't-fork — 5-file agent loop, first-class extensions/skills, anti-MCP CLI-tools stance | No default bash sandbox, single primary author, opinionated philosophy won't suit everyone |
 | Plandex | Plan/branch/sandbox for large projects — 9-role model packs, cumulative diff review, staged planning-then-implementation | Cloud shut down Oct 2025, 6 test files, single maintainer, 6+ months inactive |
 | Pydantic AI | Type-safe Python-first — generic Agent[DepsT, OutputT], ships Pydantic Evals, real-API recorded tests | Single-agent-first (no built-in multi-agent), 37+ optional dep groups, no server runtime, Logfire gravity |
+| QM | Multi-tenant org agent — one headless core, four swappable coding-agent harnesses (Pi, OpenCode, Codex, Claude Code) picked per org/scope, Slack + web + admin as separate signed-HTTP plugins | Production-shaped operational weight (5 deployable services, Postgres, Docker/AWS-microVM sandboxing) even for a single-org deployment |
 | SWE-agent | Research-first Agent-Computer Interface — tool bundles, multiple output parsers, retry-and-review loops | Team declared it superseded by mini-SWE-agent; synchronous asyncio bridge is pragmatic but fragile |
 
 ---
@@ -127,4 +130,5 @@
 | Pi | 17 | no | no | no | none |
 | Plandex | 12 | no | no | yes | none |
 | Pydantic AI | 33 | yes | no | no | none |
+| QM | — | yes | yes | no | none |
 | SWE-agent | — | no | yes | no | none |

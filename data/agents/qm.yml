@@ -1,0 +1,196 @@
+name: QM
+slug: qm
+category: general-purpose
+review: reviews/general-purpose/qm.md
+status: active
+
+design_philosophy:
+  approach: "Multi-tenant org agent — one headless core, four swappable coding-agent harnesses (Pi, OpenCode, Codex, Claude Code) picked per org/scope, Slack + web + admin as separate signed-HTTP plugins"
+  tradeoff: "Production-shaped operational weight (5 deployable services, Postgres, Docker/AWS-microVM sandboxing) even for a single-org deployment"
+
+identity:
+  repo: https://github.com/yc-software/qm
+  commit: 7f2c916360f1797a8ff2a77ce2ce40c5fabab087
+  commit_date: 2026-07-31
+  review_date: 2026-08-03
+  language: [TypeScript]
+  license: MIT
+  loc: 235000
+  files: 1042
+  dependencies:
+    direct: 28
+    notes: "13 devDependencies; harness SDKs are the bulk (@anthropic-ai/claude-agent-sdk, @openai/codex, @earendil-works/pi-ai + pi-coding-agent, @opencode-ai/sdk)"
+  commits: null
+  contributors: null
+  stated_purpose: >
+    A multiplayer agent harness for work, in Slack and on the web. Designed for
+    startups: each employee gets an isolated workspace and can also collaborate
+    with the agent in channels, group messages, and projects, with scoped
+    memory, files, keychain, permissions, crons, web apps, and a durable
+    sandbox per person and per room.
+  notable_features:
+    - Four coding-agent harnesses (Pi, OpenCode, Codex, Claude Code) behind one Harness interface, admin-selectable per org/scope
+    - Person- and room-scoped memory, files, keychain, sandbox, and crons under one org-level agent
+    - Three security postures (Strict/Auto/Dangerous) with a documented-bypassable command-policy floor
+    - Durable-by-default Postgres persistence with in-memory fallback used only for local dev/test
+    - Deployable internal "web apps" generated and published per scope
+    - Private-fork (not GitHub-fork) model for org customization, keeping core byte-identical to upstream
+
+capabilities:
+  architecture:
+    pattern: headless core + signed-HTTP plugins (in-process for dev, separate containers in production)
+    summary: >
+      src/wiring.ts builds every swappable substrate (Harness, Sandbox,
+      SessionStore, a generic DurableMap) as an interface with Postgres and
+      in-memory implementations. Plugins (web-ui, admin, portal, auth,
+      onboarding) are separate npm packages talking to core only over signed
+      HTTP via plugins/chassis; Slack runs in-process, supervised directly by
+      core. Org-specific config/tools/infra live under deploy/layers/<org/>,
+      validated by the qm CLI.
+  llm_integration:
+    providers: null
+    gateway: harness-adapter
+    provider_list: [anthropic, openai]
+    auth: [api_key, oauth]
+    notes: >
+      4 harnesses (Claude via @anthropic-ai/claude-agent-sdk, Codex by
+      spawning the compiled binary over JSON-RPC, Pi in-process via
+      @earendil-works/pi-ai, OpenCode by spawning the binary over
+      @opencode-ai/sdk) unified behind one Harness interface
+      (src/harness/harness.ts). Org-scoped allowlist of approved
+      harness/model pairs (src/resolution/config-store.ts); static
+      MODEL_REGISTRY tags fast-mode/webui/base support per model
+      (src/model/pi-models.ts). Org-wide "interactive fast mode" toggle
+      only honored by harnesses declaring the fast-mode capability
+      (Claude, Pi). Transport-agnostic context compaction with a
+      deterministic fallback (src/harness/context-compaction.ts).
+  tool_calling:
+    pattern: one fixed tool file (src/harness/pi-tools.ts), ~14 TypeBox-schema tools
+    mcp_support: true
+    mcp_stance: n/a
+    builtin_tools: [execute, read, write, publish, memory, history, background, cron, guidance, share, stay_silent, finish_silently]
+    notes: >
+      No per-deployment tool registry — new tools mean editing pi-tools.ts.
+      execute is gated by a regex-based command policy
+      (src/policy/command-policy.ts) that normalizes shell obfuscation
+      (heredocs, substitution, xargs, piping) before matching an org floor
+      (approval for recursive rm/force-push/destructive SQL, hard deny for
+      mkfs/fork bombs). MCP is used only internally: claude-harness.ts wraps
+      the fixed tool set into an in-process MCP server with
+      strictMcpConfig: true, blocking any external MCP server — not an
+      extension point for third-party tools.
+  memory:
+    session_persistence: true
+    compaction: true
+    branching: false
+    vector_store: false
+    notes: >
+      SessionStore is an append-only, lease-protected log
+      (src/sessions/session-store.ts), Postgres-backed with in-memory
+      fallback. Durable cross-session memory (src/memory/memory-service.ts,
+      postgres-memory-service.ts) is an append-only memory_revisions table
+      per scope with advisory-lock-guarded compare-and-swap rewrites,
+      exposed via the memory tool's search/read/remember/rewrite ops.
+      Context compaction folds history into a context_summary entry at
+      70%/90% soft/hard budget thresholds, preserving tool_call/tool_result
+      pairing across the cut.
+  orchestration:
+    pattern: single-agent per turn, event/wake-driven scheduling (not a fixed loop)
+    sub_agents: false
+    plan_mode: false
+    notes: >
+      src/core/orchestrator.ts handles auth/rate-limit/policy then delegates
+      the tool-call loop to the selected harness; the loop itself lives in
+      each harness adapter, not core. src/wake/wake.ts classifies incoming
+      signals into engage/steer/drop; src/wake/sweep.ts rechecks engaged
+      threads under a leader lease. Retries (src/runs/worker.ts) are
+      operational (lease loss, transient error), not reflection/self-critique.
+      Crons run on a leader-lease scheduler backed by pg-boss, each fire a
+      fresh thread with no memory beyond workspace disk and a fire log.
+  io: [slack, web-ui, admin-panel, portal-oidc, internal-web-apps]
+  testing:
+    framework: node --test
+    file_count: 470
+    faux_provider: true
+    coverage_signal: >
+      372 test files under test/ plus plugin-local suites (web-ui 72, admin
+      11, portal 11, auth 4). mock-harness.ts is a deterministic fake model
+      so most core tests skip real LLM calls. test/live-slack/ drives real
+      scenarios against a live Slack dev workspace; 12 scripts/*smoke*.ts
+      and *livetest*.ts scripts hit real AWS/Google/git services. CI shards
+      the root suite 5-way, runs a real postgres:16 service container for
+      Postgres-backed tests, and smoke-boots each plugin's built Docker image.
+  security:
+    default_bash_sandbox: true
+    approval_gate: "posture-dependent: Strict approves every tool call, Auto screens external data only, Dangerous screens nothing"
+    credential_storage: "plaintext on disk while in use (symlinked into the sandbox); short-lived STS via role broker for AWS; HMAC/JWS capability tokens (1h TTL) for core-to-plugin calls"
+    notes: >
+      Three postures confirmed in src/security/security-posture.ts. Command
+      policy is a genuine shell-aware tokenizer but is explicitly documented
+      (SECURITY.md) and confirmed in code as bypassable text classification,
+      not an execution boundary. Sandbox isolation is per-scope: plain Docker
+      container locally, genuine microVM in AWS production
+      (src/sandbox/aws-sandbox.ts) — both set egressEnforcement: "none".
+      Secret masking scrubs env-derived values >=8 chars from tool output
+      (output scrubbing, not prevention).
+  repo_trust_surfaces:
+    risk_level: low
+    agent_config_dirs: ".claude/ (settings.json has no hooks/permissions, just includeCoAuthoredBy: false), .codex/ (canonical skill bodies), no .cursor/.aider/.continue/.pi/"
+    auto_loaded_instructions: "AGENTS.md, with CLAUDE.md as a real symlink to it; qm/.claude/skills/{dev-instance,update-qm,upstream-pr} symlink to .codex/skills/"
+    lifecycle_scripts: "none — no preinstall/install/postinstall/prepare in package.json, no .husky/, no active git hooks, no .devcontainer/, no .envrc"
+    install_time_exec: false
+    notes: >
+      Nothing auto-executes on clone or open. The one executable artifact
+      reachable from .claude/ is dev-instance.sh, which only runs when a
+      developer explicitly invokes the dev-instance skill. .npmrc sets only
+      a 7-day dependency cooldown (min-release-age=7).
+  deployment:
+    install: "qm init via npm exec, deploys via the qm CLI (Fly or AWS)"
+    binary: false
+    docker: true
+    platforms: [fly.io, aws]
+    notes: >
+      Fly.io is the recommended default target, AWS a fully implemented
+      second path (S3-backed sandbox snapshotting, Lambda microVM lifecycle
+      API, ECS Fargate, RDS snapshots). Docker is documented as a quick
+      local test drive only, not a real deployment target, but is a hard
+      local dependency for building the sandbox image regardless of target.
+      Org customization confined to deploy/layers/<org>/, created via a
+      plain private-repo clone rather than a GitHub fork.
+  docs: >
+    Thorough README with architecture diagram, security-posture summary, and
+    private-fork instructions. docs/ holds only getting-started.md and a
+    detailed deploy-directory.md. SECURITY.md is unusually candid: full
+    threat model plus a 15-item known-limitations list. CONTRIBUTING.md asks
+    for informal text proposals in adrs/, not code diffs; adrs/ currently
+    holds only a .gitkeep.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 4
+  maturity: production
+  innovation:
+    highlights:
+      - Person- and room-scoped memory/files/keychain/sandbox/crons under one org-level agent
+      - Four coding-agent harnesses behind one interface with admin-controlled per-org/per-scope allowlisting
+      - Command-policy scanner that unwraps real shell obfuscation before matching, not a naive regex
+      - Private-fork-not-GitHub-fork model with tooling (update-qm, upstream-pr) enforcing the core/org boundary both ways
+  practical_utility:
+    rating: high
+    target_user: An organization wanting one Slack- and web-reachable agent shared across employees with per-person/per-room isolation, not committed to a single model vendor's agent loop.
+  vendor_lock_in: none
+  red_flags:
+    - Egress enforcement is "none" by default on both sandbox backends
+    - Command policy is documented and confirmed as bypassable text classification
+    - Sandbox credentials for logged-in services sit on disk in plaintext while in use
+    - Contribution model accepts only informal proposals, not code, from outside contributors
+  summary: >
+    QM is a production-shaped, multi-tenant org agent that treats the coding-agent
+    harness as a swappable substrate — Pi, OpenCode, Codex, and Claude Code all sit
+    behind one interface, chosen per organization and scope through an admin-controlled
+    allowlist. The interface-first design (harness, sandbox, session store, durable map)
+    is applied consistently, and SECURITY.md is candid about real limitations rather than
+    glossing over them. The cost is operational weight: five deployable services, Postgres
+    persistence, and Docker/AWS-microVM sandboxing put a floor under how simple a
+    deployment can be.

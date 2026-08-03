@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-07-12
+**Generated:** 2026-08-03
 **Methodology:** See [../METHODOLOGY.md](../METHODOLOGY.md)
 
 ---
@@ -107,6 +107,25 @@
 **Stated purpose:** The maximalist personal AI assistant — 459k LOC TypeScript monolith with 20+ channels, 109 bundled extensions, native iOS/Android/macOS apps, and a plugin SDK with enforced architecture boundaries.
 
 **Notable features:** 109 bundled extensions with typed Plugin SDK; 20+ messaging channels (WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Matrix, Teams, ...); Native iOS, Android, and macOS (SwiftUI menu bar) apps; Prompt-cache stability as first-class concern with boundary tests; Architecture boundary enforcement via programmatic tests (14+ boundary files); Session key routing (per-DM, per-group, per-thread, per-guild)
+
+### QM
+
+| Field | Value |
+|-------|-------|
+| **Repo** | https://github.com/yc-software/qm |
+| **Commit reviewed** | 7f2c916360f1797a8ff2a77ce2ce40c5fabab087 |
+| **Date of commit** | 2026-07-31 |
+| **Language(s)** | TypeScript |
+| **License** | MIT |
+| **LOC** | 235k |
+| **Files** | 1042 |
+| **Dependencies** | 28 (13 devDependencies; harness SDKs are the bulk (@anthropic-ai/claude-agent-sdk, @openai/codex, @earendil-works/pi-ai + pi-coding-agent, @opencode-ai/sdk)) |
+| **Commits** | — |
+| **Contributors** | — |
+
+**Stated purpose:** A multiplayer agent harness for work, in Slack and on the web. Designed for startups: each employee gets an isolated workspace and can also collaborate with the agent in channels, group messages, and projects, with scoped memory, files, keychain, permissions, crons, web apps, and a durable sandbox per person and per room.
+
+**Notable features:** Four coding-agent harnesses (Pi, OpenCode, Codex, Claude Code) behind one Harness interface, admin-selectable per org/scope; Person- and room-scoped memory, files, keychain, sandbox, and crons under one org-level agent; Three security postures (Strict/Auto/Dangerous) with a documented-bypassable command-policy floor; Durable-by-default Postgres persistence with in-memory fallback used only for local dev/test; Deployable internal "web apps" generated and published per scope; Private-fork (not GitHub-fork) model for org customization, keeping core byte-identical to upstream
 
 ---
 

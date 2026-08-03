@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-07-12
+**Generated:** 2026-08-03
 **Source data:** [data/agents/](../data/agents/)
 
 ---
@@ -37,6 +37,7 @@
 | Pi | npm-workspaces monorepo, minimal core | 7 packages with clear layering: tui → ai → agent-core → coding-agent, with apps (mom, pods, web-ui) on top. Agent loop is ~5 files. |
 | Plandex | client-server split with LiteLLM Python sidecar | CLI (Go) talks HTTP to server (Go) which runs alongside a LiteLLM Python proxy for multi-provider routing. PostgreSQL persistence plus per-plan git repos on server filesystem. |
 | Pydantic AI | workspace monorepo with 5 packages, type-safe generics throughout | pydantic-ai (meta), pydantic-ai-slim (core with per-provider optional deps), pydantic-graph (standalone state-machine library), pydantic-evals, clai (CLI). Agent class generic in AgentDepsT and OutputDataT. Agent graph is state machine with UserPromptNode, ModelRequestNode, CallToolsNode. |
+| QM | headless core + signed-HTTP plugins (in-process for dev, separate containers in production) | src/wiring.ts builds every swappable substrate (Harness, Sandbox, SessionStore, a generic DurableMap) as an interface with Postgres and in-memory implementations. Plugins (web-ui, admin, portal, auth, onboarding) are separate npm packages talking to core only over signed HTTP via plugins/chassis; Slack runs in-process, supervised directly by core. Org-specific config/tools/infra live under deploy/layers/<org/>, validated by the qm CLI. |
 | SWE-agent | Agent/Environment/Run split with Pydantic YAML config | Entry point sweagent/run/run.py dispatches subcommands. DefaultAgent step loop queries model, parses action, executes in SWEEnv (SWE-ReX Docker wrapper), records observation. ToolHandler manages command install/parse/block. |
 
 ## LLM Integration
@@ -65,6 +66,7 @@
 | Pi | 17 | direct | api_key, oauth |
 | Plandex | 12 | litellm | api_key |
 | Pydantic AI | 33 | custom | api_key, oauth, azure-identity, gcp-credentials |
+| QM | — | harness-adapter | api_key, oauth |
 | SWE-agent | — | litellm | api_key |
 
 ## Tool/Function Calling
@@ -93,6 +95,7 @@
 | Pi | TypeBox schemas + AJV validation | no (opposed) | bash, read, write, edit, edit-diff, find, ... |
 | Plandex | custom XML streaming protocol (not standard LLM tool calling) | no (n/a) | plan, tell, chat, apply, reject, rewind, ... |
 | Pydantic AI | @agent.tool with full type inference + 17-toolset architecture | yes (supported) | WebSearchTool, WebFetchTool, CodeExecutionTool, FileSearchTool, ImageGenerationTool, MemoryTool, ... |
+| QM | one fixed tool file (src/harness/pi-tools.ts), ~14 TypeBox-schema tools | yes (n/a) | execute, read, write, publish, memory, history, ... |
 | SWE-agent | tool bundles (shell scripts + YAML schemas) | no (n/a) | edit_anthropic, windowed, search, filemap, submit, web_browser, ... |
 
 ## Memory & State
@@ -121,6 +124,7 @@
 | Pi | yes | yes | yes | no | No vector memory; context via conversation + files + compaction. |
 | Plandex | yes | yes | yes | no | Per-plan git repos with full version history; PostgreSQL for metadata; tree-sitter project map; auto-summarization at token threshold. |
 | Pydantic AI | no | no | no | no | No built-in persistent memory — users pass message history back as input. HistoryProcessor allows custom compaction. MemoryTool provides per-agent memory if enabled. For durable state, the durable_exec/ module integrates Temporal, DBOS, Prefect — full workflow orchestrators rather than checkpointers. |
+| QM | yes | yes | no | no | SessionStore is an append-only, lease-protected log (src/sessions/session-store.ts), Postgres-backed with in-memory fallback. Durable cross-session memory (src/memory/memory-service.ts, postgres-memory-service.ts) is an append-only memory_revisions table per scope with advisory-lock-guarded compare-and-swap rewrites, exposed via the memory tool's search/read/remember/rewrite ops. Context compaction folds history into a context_summary entry at 70%/90% soft/hard budget thresholds, preserving tool_call/tool_result pairing across the cut. |
 | SWE-agent | yes | yes | no | no | TrajectoryStep objects saved as .traj JSON after each step. State via container-side "state commands" writing /root/state.json. History processors (LastNObservations, ClosedWindowHistoryProcessor, RemoveRegex, CacheControlHistoryProcessor, ImageParsing). |
 
 ## Orchestration
@@ -149,6 +153,7 @@
 | Pi | single-agent | no | no | Deliberately minimal; delegates to extensions/skills. |
 | Plandex | two-stage (Planning + Implementation) with role specialization | yes | yes | Architect analyzes codebase map, planner breaks into subtasks, coder implements. Builds queued per-file and executed in parallel. |
 | Pydantic AI | single-agent-first with pydantic-graph for complex flows | no | no | No built-in group chat or team orchestration. Complex flows via pydantic-graph (separate package) — type-safe state machine where BaseNode subclasses declare next nodes via return type hints. A2A via fasta2a converts agent into FastA2A Starlette app. Parallel tool execution within turn. EndStrategy controls early vs exhaustive tool completion. |
+| QM | single-agent per turn, event/wake-driven scheduling (not a fixed loop) | no | no | src/core/orchestrator.ts handles auth/rate-limit/policy then delegates the tool-call loop to the selected harness; the loop itself lives in each harness adapter, not core. src/wake/wake.ts classifies incoming signals into engage/steer/drop; src/wake/sweep.ts rechecks engaged threads under a leader lease. Retries (src/runs/worker.ts) are operational (lease loss, transient error), not reflection/self-critique. Crons run on a leader-lease scheduler backed by pg-boss, each fire a fresh thread with no memory beyond workspace disk and a fire log. |
 | SWE-agent | robust error pipeline with requery and retry loops | no | no | Format errors, blocked actions, syntax errors trigger requery (max 3). Cost/context/timeout exceeded triggers autosubmission. RetryAgent wraps in multi-attempt loop — ScoreRetryLoop (LLM scoring) or ChooserRetryLoop (LLM selection). Batch via ThreadPoolExecutor. |
 
 ## I/O Interfaces
@@ -177,6 +182,7 @@
 | Pi | cli, tui, print, rpc, sdk, slack, web |
 | Plandex | cli, repl, tui |
 | Pydantic AI | library, clai-cli, ag-ui-starlette, vercel-ai-sdk, declarative-yaml |
+| QM | slack, web-ui, admin-panel, portal-oidc, internal-web-apps |
 | SWE-agent | cli, web-inspector, textual-tui, flask-api, codespaces |
 
 ## Testing
@@ -205,6 +211,7 @@
 | Pi | vitest | 186 | yes | regression tests keyed by GitHub issue number |
 | Plandex | go test | 6 | no | near-zero — only parsing/text tests, no integration or e2e, no CI visible |
 | Pydantic AI | pytest + pytest-recording + inline-snapshot + pytest-examples | 151 | no | ~166k LOC test code (65% test-to-code ratio, highest in framework review set). VCR cassettes with real API responses recorded and replayed. Largest tests — test_agent.py (9611), test_capabilities.py (9081), test_vercel_ai.py (6988). "100% test coverage" goal per AGENTS.md. |
+| QM | node --test | 470 | yes | 372 test files under test/ plus plugin-local suites (web-ui 72, admin 11, portal 11, auth 4). mock-harness.ts is a deterministic fake model so most core tests skip real LLM calls. test/live-slack/ drives real scenarios against a live Slack dev workspace; 12 scripts/*smoke*.ts and *livetest*.ts scripts hit real AWS/Google/git services. CI shards the root suite 5-way, runs a real postgres:16 service container for Postgres-backed tests, and smoke-boots each plugin's built Docker image. |
 | SWE-agent | pytest (pytest-xdist, pytest-cov) | 31 | no | covers CLI, agent logic (mock models), environment, command parsing, history processors, tools. Many environment tests marked @pytest.mark.slow. SWE-bench evaluation automated via SweBenchEvaluate hook. |
 
 ## Security
@@ -233,6 +240,7 @@
 | Pi | no | extension-only | chmod-600 + proper-lockfile | pi-mom ships opt-in Docker sandbox via --sandbox=docker:<name>. |
 | Plandex | no | optional per autonomy preset | environment variables (no vault) | Linux-only cgroup isolation via systemd-run scope; _apply.sh lets LLM write arbitrary shell; no namespace/seccomp/container isolation. |
 | Pydantic AI | no | ApprovalRequiredToolset with DeferredToolRequests/Results | provider SDKs (Azure identity, GCP credentials, etc.) | No built-in sandboxing — CodeExecutionTool runs in-process unless user provides isolation. Pydantic validation at all boundaries. UsageLimits enforces request/token budgets per run. capture_run_messages() provides audit trails. Logfire creates structured traces. |
+| QM | yes | posture-dependent: Strict approves every tool call, Auto screens external data only, Dangerous screens nothing | plaintext on disk while in use (symlinked into the sandbox); short-lived STS via role broker for AWS; HMAC/JWS capability tokens (1h TTL) for core-to-plugin calls | Three postures confirmed in src/security/security-posture.ts. Command policy is a genuine shell-aware tokenizer but is explicitly documented (SECURITY.md) and confirmed in code as bypassable text classification, not an execution boundary. Sandbox isolation is per-scope: plain Docker container locally, genuine microVM in AWS production (src/sandbox/aws-sandbox.ts) — both set egressEnforcement: "none". Secret masking scrubs env-derived values >=8 chars from tool output (output scrubbing, not prevention). |
 | SWE-agent | yes | tool blocklist (no per-command prompts) | Pydantic SecretStr with env var references | Docker sandboxing via SWE-ReX. Tool blocklist prevents interactive/dangerous commands. Propagated env vars can leak into debug logs (explicitly documented). |
 
 ## Repo Trust Surfaces
@@ -261,6 +269,7 @@
 | Pi | low | .pi | AGENTS.md | husky-prepare | no |
 | Plandex | — | — | — | — | — |
 | Pydantic AI | — | — | — | — | — |
+| QM | low | .claude/ (settings.json has no hooks/permissions, just includeCoAuthoredBy: false), .codex/ (canonical skill bodies), no .cursor/.aider/.continue/.pi/ | AGENTS.md, with CLAUDE.md as a real symlink to it; qm/.claude/skills/{dev-instance,update-qm,upstream-pr} symlink to .codex/skills/ | none — no preinstall/install/postinstall/prepare in package.json, no .husky/, no active git hooks, no .devcontainer/, no .envrc | no |
 | SWE-agent | — | — | — | — | — |
 
 ## Deployment
@@ -289,6 +298,7 @@
 | Pi | npm install -g @mariozechner/pi-coding-agent | yes | no | linux, macos, windows |
 | Plandex | one-line curl install (CLI) + Docker compose (server) | yes | yes | linux, macos |
 | Pydantic AI | pip install pydantic-ai (meta) or pydantic-ai-slim[provider,tool,integration] | no | no | linux, macos, windows |
+| QM | qm init via npm exec, deploys via the qm CLI (Fly or AWS) | no | yes | fly.io, aws |
 | SWE-agent | pip install from source | no | yes | linux, macos, windows |
 
 ## Documentation
@@ -317,4 +327,5 @@
 | Pi | Per-package READMEs and CHANGELOGs; 24 topical docs under packages/coding-agent/docs; AGENTS.md codifies rules for both humans and agents working in the repo. |
 | Plandex | README with workflow diagram and cloud-shutdown notice; external docs at docs.plandex.ai; inline docs sparse; prompt templates in model/prompts/ serve as implicit behavioral docs. |
 | Pydantic AI | Hosted at ai.pydantic.dev (Mintlify). In-repo — README, AGENTS.md, CLAUDE.md, CONTRIBUTING.md at root; per-package READMEs; extensive example collection (weather agent, SQL generation, RAG, Slack lead qualifier, streaming, roulette wheel, flight booking, data analyst, bank support, chat app). AGENTS.md documents "strong primitives over batteries", backward compatibility policy, 100% coverage goal. |
+| QM | Thorough README with architecture diagram, security-posture summary, and private-fork instructions. docs/ holds only getting-started.md and a detailed deploy-directory.md. SECURITY.md is unusually candid: full threat model plus a 15-item known-limitations list. CONTRIBUTING.md asks for informal text proposals in adrs/, not code diffs; adrs/ currently holds only a .gitkeep. |
 | SWE-agent | MkDocs-Material site at swe-agent.com with 40+ pages (installation, usage, custom tools, trajectories, API reference); CONTRIBUTING.md; README links to NeurIPS paper and related projects (SWE-bench, SWE-smith, SWE-ReX, mini-SWE-agent). |
