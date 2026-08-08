@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-08-03
+**Generated:** 2026-08-08
 **Methodology:** See [../METHODOLOGY.md](../METHODOLOGY.md)
 
 ---
@@ -302,6 +302,25 @@
 
 **Notable features:** 9-role model pack system (planner, coder, architect, builder, ...); Plan/branch/rewind workflow with git-per-plan version control; Cumulative diff review sandbox — changes kept separate until applied; Staged planning-then-implementation orchestration; Five autonomy presets (full/semi/plus/basic/none/custom); Custom XML streaming protocol for LLM output parsing
 
+### Plimsoll
+
+| Field | Value |
+|-------|-------|
+| **Repo** | https://github.com/EdwardAThomson/plimsoll |
+| **Commit reviewed** | 6357bab8491b185ea6df2a1996f39afc8d0247ef |
+| **Date of commit** | 2026-08-08 |
+| **Language(s)** | Python |
+| **License** | Apache-2.0 |
+| **LOC** | 78.5k |
+| **Files** | 164 |
+| **Dependencies** | 0 (stdlib-only, with a caveat — the Anthropic API route lazily imports an unshipped sibling project (llm_backends); src ~33k LOC (half narrative docstring), tests ~45k) |
+| **Commits** | 368 |
+| **Contributors** | 1 |
+
+**Stated purpose:** An autonomous build loop for long unsupervised work: takes one prompt, writes its own spec and checklist, and builds unattended — a fresh session per item, a commit per item, and a tick only where a verify command exited 0 against the tree that item produced. Stops and says so out of band rather than continuing to look busy.
+
+**Notable features:** Receipt gate — a tick requires exit 0 + recorded tree hash + an executed negative control proving the verify can fail; Falsifiability-probed acceptance criteria with baseline discounting (three-moment check closes the self-grading loophole); Probe-based cross-run memory — stores commands that re-derive facts, re-probed at moment of consequence, contradictions flagged never auto-repaired; Self-supervising watcher — alerts.jsonl + notify-cmd, with UNREADABLE (cannot see) as its own alert and watch-the-watcher heartbeats; DB-trigger-enforced freeze and append-only invariants; events.jsonl projection with gap-free audited seq; Cost honesty — cost_usd is NULL when unknown ("0.0 is a lie"), per-run dollar figures published in DEVLOG.md
+
 ### SWE-agent
 
 | Field | Value |
@@ -381,6 +400,25 @@
 **Stated purpose:** The role-playing multi-agent framework — Python-first with no LangChain dependency, 141k LOC monorepo, 75 bundled tools, unified memory with LanceDB, event-driven telemetry, dual Crew/Flow abstractions, and a commercial platform (CrewAI AMP) layered on MIT core.
 
 **Notable features:** Role/goal/backstory agent pattern with hire-like mental model; Crews (autonomous collaboration) + Flows (event-driven precise control) duality; 75 pre-built tools spanning web search, scraping, DBs, cloud, automation; Unified memory with LLM-inferred metadata (scope/category/importance); Event-driven telemetry with 20+ typed event classes; Commercial CrewAI AMP platform for deployment
+
+### Dorfl
+
+| Field | Value |
+|-------|-------|
+| **Repo** | https://github.com/wighawag/dorfl |
+| **Commit reviewed** | 0d32932b92b004c9fad6affd2eb2773eede8b9cc |
+| **Date of commit** | 2026-08-01 |
+| **Language(s)** | TypeScript |
+| **License** | None (no LICENSE file; ADR states AGPL-3.0 intent) |
+| **LOC** | 161k |
+| **Files** | 378 |
+| **Dependencies** | 1 (runtime is commander only; src ~71k LOC, tests ~89k LOC) |
+| **Commits** | 2659 |
+| **Contributors** | 8 |
+
+**Stated purpose:** A small TypeScript/Node CLI that discovers, schedules, and runs work across many repos — guided human loop or unattended autonomous runner — on top of a file-based work/ contract and an atomic git-ref claim protocol. Dogfooded: tracks its own roadmap in its own work/ tree.
+
+**Notable features:** Atomic claims via create-only git lock-ref pushes (refs/dorfl/lock/*) — receive-pack as distributed CAS, works offline against a local bare arbiter; Status-is-the-folder work ledger — one markdown file per item, git mv as state transition, conflict-safe for parallel agents; Runner owns all git — the build agent only edits files; land = rebase + re-verify + integrate, conflicts never auto-resolved; Prompts assembled from versioned protocol docs (CLAIM-PROTOCOL.md) copied per-repo and vendored into the package; Host-only config keys — a committed dorfl.json cannot redirect which executable the host runs; dorflCmd bootstrap — global binary self-forwards to the repo-pinned dorfl version
 
 ### GBrain
 

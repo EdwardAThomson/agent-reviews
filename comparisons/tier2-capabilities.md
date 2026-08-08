@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-08-03
+**Generated:** 2026-08-08
 **Source data:** [data/agents/](../data/agents/)
 
 ---
@@ -22,6 +22,7 @@
 | CLIO | operation-routing with 17+ namespaces | Entry script bootstraps lib/, hands off to UI::Chat → SimpleAIAgent → WorkflowOrchestrator → ToolExecutor → Tool modules. Tools register operations through CLIO::Tools::Registry with operation-level aliasing. |
 | Codex CLI | 91-crate Rust workspace with core orchestration hub | Binary entry cli dispatches subcommands (TUI, exec, review, login, mcp). Core crate contains Codex, ThreadManager, McpManager, SkillsManager, PluginsManager, tool router, compaction, memory, agent spawning. |
 | CrewAI | monorepo with 4 libs, Agent/Task/Crew/Flow primitives | crewai (core), crewai-tools (75 tools), crewai-files (multimodal), devtools (release automation). Primary abstractions — Agent (1822 LOC) with role/goal/backstory, Task (1353 LOC), Crew (2276 LOC) orchestrating sequential or hierarchical, Flow (3458 LOC) as event-driven state machine. |
+| Dorfl | modular monolith (single-package CLI, ~180 modules, DI seams, git-as-database) | commander CLI (cli.ts, 5,127 lines of dispatch) delegating to perform* modules; durable state = markdown work items whose folder is their status on main, transient state = per-item lock refs; pluggable harness/isolation/review/issue-provider seams with one in-tree adapter each; arbiter remote (GitHub or local bare repo) is the sole serialization point. |
 | GBrain | contract-first with pluggable BrainEngine + StorageBackend interfaces | src/core/operations.ts defines ~30 operations as single source of truth. CLI and MCP server both generated from it. BrainEngine interface with 30+ methods; currently only PostgresEngine implemented. StorageBackend pluggable (S3, Supabase, local). |
 | Gemini CLI | npm-workspaces monorepo, 7 packages | Packages core (API orchestration), cli (React/Ink TUI), sdk (embedding), a2a-server, devtools, test-utils, vscode-ide-companion. Data flows GeminiChat → Turn (streaming generator) → Scheduler. |
 | Goose | 9-crate Rust workspace plus Electron desktop | Core (~90k lines) houses agent loop, providers, extensions, security, sessions. Server is Axum-based HTTP with REST routes. Goose-cli, goose-server, goose-mcp, goose-acp, goose-sdk, goose-test, goose-test-support as supporting crates. |
@@ -36,6 +37,7 @@
 | OpenHands | Controller-Agent-Runtime with V0/V1 split | run_controller() wires AgentController, Agent, Runtime, Memory. V0 server (FastAPI + Socket.IO) being phased out; V1 server with clean REST API; V1 extracts agentic core into separate openhands-sdk package. 210 of 489 files tagged Legacy-V0. |
 | Pi | npm-workspaces monorepo, minimal core | 7 packages with clear layering: tui → ai → agent-core → coding-agent, with apps (mom, pods, web-ui) on top. Agent loop is ~5 files. |
 | Plandex | client-server split with LiteLLM Python sidecar | CLI (Go) talks HTTP to server (Go) which runs alongside a LiteLLM Python proxy for multi-provider routing. PostgreSQL persistence plus per-plan git repos on server filesystem. |
+| Plimsoll | modular monolith (stdlib-only, 57 modules, event-sourced; per-run SQLite + append-only JSONL projection) | Layered import graph with no cycles (db/events → queue/receipts → payload/step/plan → loop → lifecycle); state.db per target with 28 versioned migrations and trigger-enforced freeze/append-only; events.jsonl written gap-free-seq under the same transaction so a watcher audits without a DB handle; core modules 60-73% narrative docstring citing the run ID behind every rule. |
 | Pydantic AI | workspace monorepo with 5 packages, type-safe generics throughout | pydantic-ai (meta), pydantic-ai-slim (core with per-provider optional deps), pydantic-graph (standalone state-machine library), pydantic-evals, clai (CLI). Agent class generic in AgentDepsT and OutputDataT. Agent graph is state machine with UserPromptNode, ModelRequestNode, CallToolsNode. |
 | QM | headless core + signed-HTTP plugins (in-process for dev, separate containers in production) | src/wiring.ts builds every swappable substrate (Harness, Sandbox, SessionStore, a generic DurableMap) as an interface with Postgres and in-memory implementations. Plugins (web-ui, admin, portal, auth, onboarding) are separate npm packages talking to core only over signed HTTP via plugins/chassis; Slack runs in-process, supervised directly by core. Org-specific config/tools/infra live under deploy/layers/<org/>, validated by the qm CLI. |
 | SWE-agent | Agent/Environment/Run split with Pydantic YAML config | Entry point sweagent/run/run.py dispatches subcommands. DefaultAgent step loop queries model, parses action, executes in SWEEnv (SWE-ReX Docker wrapper), records observation. ToolHandler manages command install/parse/block. |
@@ -51,6 +53,7 @@
 | CLIO | 10 | custom | api_key, oauth |
 | Codex CLI | — | direct | chatgpt-oauth, api_key |
 | CrewAI | 100 | litellm | api_key |
+| Dorfl | — | external coding-agent CLI (harness seam — configurable agentCmd shell-out or first-class pi adapter); zero direct API calls | none in dorfl ("never touches auth/keys"); install-ci provisions GitHub secrets for the pi harness |
 | GBrain | 2 | direct | api_key |
 | Gemini CLI | 1 | direct | api_key, oauth, vertex-ai, cloud-shell-adc, gateway |
 | Goose | 25 | custom | api_key, oauth, keyring |
@@ -65,6 +68,7 @@
 | OpenHands | — | litellm | api_key |
 | Pi | 17 | direct | api_key, oauth |
 | Plandex | 12 | litellm | api_key |
+| Plimsoll | 3 | OpenRouter as a first-class metered route (stdlib urllib; cost read from gateway, never computed); no LiteLLM/proxy | ANTHROPIC_API_KEY, OPENROUTER_API_KEY, CLI subscription auth (metered keys stripped from delegate env) |
 | Pydantic AI | 33 | custom | api_key, oauth, azure-identity, gcp-credentials |
 | QM | — | harness-adapter | api_key, oauth |
 | SWE-agent | — | litellm | api_key |
@@ -80,6 +84,7 @@
 | CLIO | operation-routing via Tool base class | yes (supported) | FileOperations, VersionControl, TerminalOperations, MemoryOperations, TodoList, WebOperations, ... |
 | Codex CLI | two-layer (tools crate for schemas + core/src/tools for handlers) | yes (supported) | shell, apply-patch, list-dir, plan, request-user-input, js-repl, ... |
 | CrewAI | BaseTool with auto-registry via __init_subclass__ | yes (supported) | web-search, web-scraping, file-search, databases, cloud, automation, ... |
+| Dorfl | inverted — no LLM tool-calling; exposes SKILL.md skills to ~21 external harnesses (vendored incur map) and parses in-band stdout contracts (TASK-STOP sentinel, JSON review verdict) | no (n/a) | — |
 | GBrain | 30 MCP tools auto-generated from operations array | yes (supported) | create, read, update, search, chunks, links, ... |
 | Gemini CLI | BaseDeclarativeTool with model-family-specific tool sets | yes (supported) | ReadFile, WriteFile, Edit, Shell, Glob, Grep, ... |
 | Goose | layered platform-extensions + external MCP extensions with inspection pipeline | yes (supported) | Developer, Analyze, Todo, Apps, ChatRecall, Summon, ... |
@@ -94,6 +99,7 @@
 | OpenHands | typed Action/Observation pairs parsed from LLM tool calls | yes (supported) | execute_bash, str_replace_editor, ipython, browser, think, finish, ... |
 | Pi | TypeBox schemas + AJV validation | no (opposed) | bash, read, write, edit, edit-diff, find, ... |
 | Plandex | custom XML streaming protocol (not standard LLM tool calling) | no (n/a) | plan, tell, chat, apply, reject, rewind, ... |
+| Plimsoll | two tools only on the loop path (read_file/write_file, per-step table, COMMIT gets none) dispatched through one door; delegate hands the whole tool loop to the CLI under bypassPermissions | no (opposed) | read_file, write_file |
 | Pydantic AI | @agent.tool with full type inference + 17-toolset architecture | yes (supported) | WebSearchTool, WebFetchTool, CodeExecutionTool, FileSearchTool, ImageGenerationTool, MemoryTool, ... |
 | QM | one fixed tool file (src/harness/pi-tools.ts), ~14 TypeBox-schema tools | yes (n/a) | execute, read, write, publish, memory, history, ... |
 | SWE-agent | tool bundles (shell scripts + YAML schemas) | no (n/a) | edit_anthropic, windowed, search, filemap, submit, web_browser, ... |
@@ -109,6 +115,7 @@
 | CLIO | yes | yes | no | no | Three-tier — short-term KV store, long-term .clio/ltm.json with confidence scores, YaRN conversation threading. User profiling scans sessions across projects. |
 | Codex CLI | yes | yes | no | no | SQLite with schema versioning + migrations; rollout JSONL files; two-phase memory pipeline (Phase 1 extracts with gpt-5.4-mini low-effort, Phase 2 consolidates with gpt-5.3-codex medium-effort). |
 | CrewAI | yes | yes | yes | yes | Unified memory — single system rather than short/long/entity tiers. LLM infers scope/category/importance on save. Retrieval composite scoring (30% recency with 30-day half-life, 50% semantic, 20% importance). RecallFlow does adaptive depth exploration. Default LanceDB backend. Separate Knowledge system for RAG. Flows have SQLite-backed state persistence. |
+| Dorfl | yes | no | no | no | All state is git — work/ folder-as-status tree committed in-repo, per-item lock refs, bare hub mirrors + job worktrees under ~/.dorfl. Deadline WIP checkpoints + dorfl resume for continuity; agent transcripts belong to the pi harness's session files, not dorfl. |
 | GBrain | yes | no | yes | yes | Core product. Knowledge model splits every page into "compiled truth" (current best understanding) above separator and append-only "timeline" below. Database schema has 10 tables (pages, content_chunks, links, tags, timeline_entries, page_versions, raw_data, files, ingest_log, config). Sync does incremental git-to-brain via git diff --name-status -M. Import idempotent via SHA-256 hashing. |
 | Gemini CLI | yes | yes | no | no | Four-level hierarchical memory (global, extension, project, user-project) via GEMINI.md files; ChatRecordingService NDJSON with rewind; checkpointing on file-modifying tool calls. |
 | Goose | yes | yes | yes | no | SQLite via sqlx (schema v10); 7 session types (User, Scheduled, SubAgent, Hidden, Terminal, Gateway, ACP) with LRU-cached agents. Auto-compaction at 80% context. ChatRecall searches past sessions. Separate Memory MCP server for key-value data. |
@@ -123,6 +130,7 @@
 | OpenHands | yes | yes | no | no | StateTracker persists via FileStore (local/S3/GCS). 8+ condenser implementations (NoOp, ConversationWindow, RecentEvents, AmortizedForgetting, LLMSummarizing, LLMAttention, BrowserOutput, ObservationMasking, PipelineCondenser). ConversationMemory transforms event streams with Anthropic cache breakpoints. |
 | Pi | yes | yes | yes | no | No vector memory; context via conversation + files + compaction. |
 | Plandex | yes | yes | yes | no | Per-plan git repos with full version history; PostgreSQL for metadata; tree-sitter project map; auto-summarization at token threshold. |
+| Plimsoll | yes | no | no | no | SQLite state.db per target repo + events.jsonl; cross-run probe/ observation/memo store re-derives facts by command instead of caching values and emits memory.contradicted on drift; fresh model session per step, carryover only through the DB; resume needs no checkpoint beyond the queue (wart — max-parallel not recorded, resumes serial). |
 | Pydantic AI | no | no | no | no | No built-in persistent memory — users pass message history back as input. HistoryProcessor allows custom compaction. MemoryTool provides per-agent memory if enabled. For durable state, the durable_exec/ module integrates Temporal, DBOS, Prefect — full workflow orchestrators rather than checkpointers. |
 | QM | yes | yes | no | no | SessionStore is an append-only, lease-protected log (src/sessions/session-store.ts), Postgres-backed with in-memory fallback. Durable cross-session memory (src/memory/memory-service.ts, postgres-memory-service.ts) is an append-only memory_revisions table per scope with advisory-lock-guarded compare-and-swap rewrites, exposed via the memory tool's search/read/remember/rewrite ops. Context compaction folds history into a context_summary entry at 70%/90% soft/hard budget thresholds, preserving tool_call/tool_result pairing across the cut. |
 | SWE-agent | yes | yes | no | no | TrajectoryStep objects saved as .traj JSON after each step. State via container-side "state commands" writing /root/state.json. History processors (LastNObservations, ClosedWindowHistoryProcessor, RemoveRegex, CacheControlHistoryProcessor, ImageParsing). |
@@ -138,6 +146,7 @@
 | CLIO | persistent collaborative workers via Coordination::Broker | yes | no | Unix domain socket broker with file locking, git locking, knowledge sharing, agent status, message bus, API rate limiting. SubAgent spawns via fork() with persistent/one-shot modes. |
 | Codex CLI | async channel session loop with multi-thread support | yes | yes | ThreadManager manages concurrent CodexThread instances; multi-agents via spawn/wait/close/resume/send-input handlers; depth limited via agent_max_depth. Hooks on session_start, pre_tool_use, post_tool_use, user_prompt_submit, stop. |
 | CrewAI | two models — Crews (sequential/hierarchical) + Flows (event-driven state machine) | yes | yes | Crews execute Process.sequential or Process.hierarchical. Flows decorated with @start/@listen/@router wired into runtime. Flows compose with Crews. Planning mode for pre-execution task decomposition. A2A protocol via optional a2a-sdk. |
+| Dorfl | parallel single-agent workers — cross-repo daemon (run) / per-repo worker (do) driving deterministic gate pipelines, not a conversation loop | yes | no | Keyed semaphore caps (maxParallel/perRepoMax); claim = lock-ref CAS with no retry; Gate 1 verify + Gate 2 fresh-context review agent; land = rebase + re-verify, conflicts abort to needs-attention question files; deadline checkpoints release the lock only after verified kill of the agent's process tree; TASK-STOP sentinel bounces ambiguous tasks to a human; planning externalized into the intake→spec→tasking ledger pipeline. |
 | GBrain | none (retrieval/storage layer, not agent framework) | no | no | Orchestration delegated to external systems (OpenClaw, Hermes, any MCP client). Intelligence lives in skill markdown files — natural-language playbooks telling agents how to use GBrain's tools. |
 | Gemini CLI | event-driven Scheduler with state machine (scheduled → validating → executing → completed) | yes | yes | Local subagents declared declaratively (codebase-investigator, generalist-agent, cli-help-agent, memory-manager-agent, browser); remote agents via A2A. ModelRouterService uses composite strategy (fallback, override, approval-mode, Gemma classifier, generic, numerical, default). |
 | Goose | turn-based agent loop with inspection pipeline and parallel tool execution | yes | no | ~2470-line agent loop with max 1000 turns. Summon delegates to fresh agent instances. Cron-based scheduler for recurring tasks. MOIM system injects custom context per turn. Recipes provide declarative task config. |
@@ -152,6 +161,7 @@
 | OpenHands | event-driven controller with agent delegation | yes | no | CodeActAgent can delegate to BrowsingAgent via AgentDelegateAction. StuckDetector identifies loops. Enterprise includes solvability classifier for issue triage. |
 | Pi | single-agent | no | no | Deliberately minimal; delegates to extensions/skills. |
 | Plandex | two-stage (Planning + Implementation) with role specialization | yes | yes | Architect analyzes codebase map, planner breaks into subtasks, coder implements. Builds queued per-file and executed in parallel. |
+| Plimsoll | single-agent plan-first pipeline — SURVEY → INTERPRET (falsifiability-probed acceptance) → PLAN frozen behind 6 named judgements → parallel per-item worktrees with serial ordinal landing barrier → receipt gate → contamination gate → one harness commit per item → baseline-discounted verdict | no | yes | Retries cap at 2 then park blocked(sticky, human unblock only); stall detection alerts but never stops; foreign commits detected after the fact not prevented (candid that prompts are not guarantees); ancestry break halts unconditionally; nearly every gate cites the run ID of the failure that motivated it. |
 | Pydantic AI | single-agent-first with pydantic-graph for complex flows | no | no | No built-in group chat or team orchestration. Complex flows via pydantic-graph (separate package) — type-safe state machine where BaseNode subclasses declare next nodes via return type hints. A2A via fasta2a converts agent into FastA2A Starlette app. Parallel tool execution within turn. EndStrategy controls early vs exhaustive tool completion. |
 | QM | single-agent per turn, event/wake-driven scheduling (not a fixed loop) | no | no | src/core/orchestrator.ts handles auth/rate-limit/policy then delegates the tool-call loop to the selected harness; the loop itself lives in each harness adapter, not core. src/wake/wake.ts classifies incoming signals into engage/steer/drop; src/wake/sweep.ts rechecks engaged threads under a leader lease. Retries (src/runs/worker.ts) are operational (lease loss, transient error), not reflection/self-critique. Crons run on a leader-lease scheduler backed by pg-boss, each fire a fresh thread with no memory beyond workspace disk and a fire log. |
 | SWE-agent | robust error pipeline with requery and retry loops | no | no | Format errors, blocked actions, syntax errors trigger requery (max 3). Cost/context/timeout exceeded triggers autosubmission. RetryAgent wraps in multi-attempt loop — ScoreRetryLoop (LLM scoring) or ChooserRetryLoop (LLM selection). Batch via ThreadPoolExecutor. |
@@ -167,6 +177,7 @@
 | CLIO | cli, tmux, screen, zellij, host-protocol |
 | Codex CLI | tui, app-server, mcp-server, webrtc, exec, responses-proxy |
 | CrewAI | cli, python-api, textual-tui, multimodal-files |
+| Dorfl | CLI (~30 commands), GitHub Actions (install-ci generated workflows), GitHub issues/PRs via gh CLI (intake front door, propose-mode PRs), Node library entry (undocumented) |
 | GBrain | cli, mcp-server, typescript-library, tools-json |
 | Gemini CLI | tui, headless, vscode, acp, sea, docker |
 | Goose | cli, desktop-electron, http-api, sse, mcp-proxy, telegram-gateway, acp, dictation |
@@ -181,6 +192,7 @@
 | OpenHands | cli, web-ui, rest-api, mcp-server, headless |
 | Pi | cli, tui, print, rpc, sdk, slack, web |
 | Plandex | cli, repl, tui |
+| Plimsoll | CLI (run/pause/stop/resume/finding/memo/amend/unblock/progress), detached daemon (--detach, flock lock), watcher alert stream (alerts.jsonl + --notify-cmd JSON-line stdin; FAIL/STALL/BLOCKED/EXHAUSTED/ENDED/SILENT/UNREADABLE), tail-able events.jsonl, rendered markdown artifacts |
 | Pydantic AI | library, clai-cli, ag-ui-starlette, vercel-ai-sdk, declarative-yaml |
 | QM | slack, web-ui, admin-panel, portal-oidc, internal-web-apps |
 | SWE-agent | cli, web-inspector, textual-tui, flask-api, codespaces |
@@ -196,6 +208,7 @@
 | CLIO | Test::More + custom runner | 116 | no | ~80 unit + ~30 integration + ~6 e2e; security tests particularly thorough (injection vectors, port validation, shell quoting) |
 | Codex CLI | cargo test + insta snapshots + wiremock | 436 | no | 273+ test files, 163 companion *_tests.rs, 20+ crates with dedicated test dirs, core_test_support/app_test_support/mcp_test_support libraries |
 | CrewAI | pytest + pytest-xdist + pytest-asyncio + VCR.py cassettes | 225 | no | 28% test-to-source ratio; 15+ cassette directories for deterministic HTTP replay; 14 CI workflows (tests, ruff, mypy strict, CodeQL, Bandit, vulnerability scanning, nightly, PR checks, docs link checking, test duration tracking). |
+| Dorfl | vitest 4 (parallel + sequential race-pinned projects) | 237 | yes | ~89k test lines exceed src; real integration tests driving git subprocesses against throwaway repos + local bare arbiters, incl. cross-process claim races; no coverage tooling; full suite gates CI via self-hosted dorfl verify. |
 | GBrain | bun test | 26 | no | 21 unit tests + 5 E2E against real Postgres+pgvector with 16-file fixture corpus; docker-compose.test.yml provides pgvector for local testing; E2E skip gracefully when DATABASE_URL unset. |
 | Gemini CLI | vitest with V8 coverage | — | no | ~107 integration tests, ~30 behavior evals, memory/perf regression baselines with heap/RSS tracking, preflight pipeline (clean/install/build/lint/typecheck/full-suite) |
 | Goose | cargo test + wiremock + mockall + insta + serial_test | 147 | no | integration tests for agent/compaction/MCP/adversary/scheduler/provider, ACP protocol tests, TLS tests, MCP playback/record in goose-test-support, evals/open-model-gym for model evaluation |
@@ -210,6 +223,7 @@
 | OpenHands | pytest (async, coverage, parallel, Playwright, timeouts, forked) | — | no | benchmark infra in separate OpenHands/benchmarks repo (SWE-bench, WebArena, MiniWob). Enterprise has 100+ test files. Unit tests outside openhands/ package — open-source core coverage unclear. |
 | Pi | vitest | 186 | yes | regression tests keyed by GitHub issue number |
 | Plandex | go test | 6 | no | near-zero — only parsing/text tests, no integration or e2e, no CI visible |
+| Plimsoll | pytest (106 files, 1,622 collected) | 106 | yes | 1,617/1,622 green in 102s run live for this review (2 fails environmental); 49 files drive real git repos/worktrees, one file uses unittest.mock, 246 control-named tests practice the negative-control discipline; no CI, no coverage tooling. |
 | Pydantic AI | pytest + pytest-recording + inline-snapshot + pytest-examples | 151 | no | ~166k LOC test code (65% test-to-code ratio, highest in framework review set). VCR cassettes with real API responses recorded and replayed. Largest tests — test_agent.py (9611), test_capabilities.py (9081), test_vercel_ai.py (6988). "100% test coverage" goal per AGENTS.md. |
 | QM | node --test | 470 | yes | 372 test files under test/ plus plugin-local suites (web-ui 72, admin 11, portal 11, auth 4). mock-harness.ts is a deterministic fake model so most core tests skip real LLM calls. test/live-slack/ drives real scenarios against a live Slack dev workspace; 12 scripts/*smoke*.ts and *livetest*.ts scripts hit real AWS/Google/git services. CI shards the root suite 5-way, runs a real postgres:16 service container for Postgres-backed tests, and smoke-boots each plugin's built Docker image. |
 | SWE-agent | pytest (pytest-xdist, pytest-cov) | 31 | no | covers CLI, agent logic (mock models), environment, command parsing, history processors, tools. Many environment tests marked @pytest.mark.slow. SWE-bench evaluation automated via SweBenchEvaluate hook. |
@@ -225,6 +239,7 @@
 | CLIO | no | PathAuthorizer sandbox (inside workspace auto, outside requires auth) | environment variables only — never written to disk | Five security modules — SecretRedactor (5 levels, ~20 regex patterns), CommandAnalyzer (intent-based, not blocklists), PathAuthorizer (sandbox), InvisibleCharFilter (Unicode prompt injection defense), RemoteExecution (strict host/port validation, _shell_quote hardening, --sandbox flag). |
 | Codex CLI | yes | per-command sandbox selection + retry with escalated sandbox | ChatGPT OAuth or API key; cargo-deny for dep auditing | Platform-native sandboxing (Seatbelt/Landlock+bubblewrap+seccomp/Windows); EffectiveSandboxPermissions computed from intersected profiles; process-hardening crate disables core dumps and ptrace; execpolicy with allow/deny rule parser. |
 | CrewAI | no | guardrails at task level with auto-retry on failure | env-based; enterprise tier adds SSO via AMP | Built-in guardrails with automatic retry up to guardrail_max_retries. Agent fingerprinting for identity anchoring. Pre-deployment validation. Enterprise tier adds PII masking, hallucination guardrails, RBAC, SSO via AMP platform. No tool sandboxing — code execution and shell tools run in-process. |
+| Dorfl | no | deterministic verify gate + optional fresh-worktree re-verify + review agent; no trust gate on repo-supplied commands (acknowledged) | ambient git creds; optional pinned bot identity (SSH IdentityAgent=none); CI auth-json mode stores self-rotating pi OAuth blob in repo secrets (acknowledged sharp edge) | Agent spawned with inherited process.env, no container — git worktrees are the only isolation. Repo-committed prepare/verify/dorflCmd run via bash -c (untrusted repos execute code). Strong boundaries elsewhere: committed dorfl.json blocked from host-only keys (agentCmd/piBin), runner owns all git, argv-array git plumbing, content-derived slugs. |
 | GBrain | — | n/a | API keys from env only; database_url in ~/.gbrain/config.json with 0600 permissions | Config files with 0600 permissions. Row Level Security enabled on all 10 tables when connected role has BYPASSRLS. doctor command warns on RLS status. Slug validation rejects path traversal. Parameterized SQL throughout. |
 | Gemini CLI | yes | ApprovalMode enum (DEFAULT, YOLO, PLAN) | OAuth/API key via standard auth flows | Folder trust (FolderTrustDiscoveryService scans .gemini/ before granting trust); policy engine TOML rules with wildcards; platform-native sandboxing (bubblewrap/seatbelt/Windows C#); safety subsystem with checker runners; environment sanitization strips sensitive vars. |
 | Goose | no | configurable per GooseMode (Auto, Approve, SmartApprove, Chat) | keyring integration for secrets | Multi-layer ToolInspectionManager — SecurityInspector (30+ threat patterns), EgressInspector (network monitoring), AdversaryInspector (LLM-based review), PermissionInspector (3-tier), RepetitionInspector. Extension malware checking. SECURITY.md candidly acknowledges prompt injection risks. |
@@ -239,6 +254,7 @@
 | OpenHands | yes | confirmation_mode pauses for user approval; ActionSecurityRisk levels | V1 adds JWT auth and session auth for sandboxes | Pluggable SecurityAnalyzer — InvariantAnalyzer (policy engine in Docker sidecar), GrayswanAnalyzer, LLMAnalyzer. Docker sandbox with configurable user IDs, network policies, host network controls. |
 | Pi | no | extension-only | chmod-600 + proper-lockfile | pi-mom ships opt-in Docker sandbox via --sandbox=docker:<name>. |
 | Plandex | no | optional per autonomy preset | environment variables (no vault) | Linux-only cgroup isolation via systemd-run scope; _apply.sh lets LLM write arbitrary shell; no namespace/seccomp/container isolation. |
+| Plimsoll | yes | none — bypassPermissions conceded at the call site; detective controls instead (receipt gate, two-armed contamination check) | env vars only; SSH_AUTH_SOCK + all four API keys stripped from delegate env, but keys visible to model-authored verify commands | unshare userns + .env-over-/dev/null for harness-run verifies — "hygiene, not containment" (no network isolation, root .env by exact name, silent degrade to plain shell without userns). Write scope advisory post-commit except pre-write in the harness tool loop. README's threat-model honesty verified accurate against code; stated model is one operator, one machine, no security review. |
 | Pydantic AI | no | ApprovalRequiredToolset with DeferredToolRequests/Results | provider SDKs (Azure identity, GCP credentials, etc.) | No built-in sandboxing — CodeExecutionTool runs in-process unless user provides isolation. Pydantic validation at all boundaries. UsageLimits enforces request/token budgets per run. capture_run_messages() provides audit trails. Logfire creates structured traces. |
 | QM | yes | posture-dependent: Strict approves every tool call, Auto screens external data only, Dangerous screens nothing | plaintext on disk while in use (symlinked into the sandbox); short-lived STS via role broker for AWS; HMAC/JWS capability tokens (1h TTL) for core-to-plugin calls | Three postures confirmed in src/security/security-posture.ts. Command policy is a genuine shell-aware tokenizer but is explicitly documented (SECURITY.md) and confirmed in code as bypassable text classification, not an execution boundary. Sandbox isolation is per-scope: plain Docker container locally, genuine microVM in AWS production (src/sandbox/aws-sandbox.ts) — both set egressEnforcement: "none". Secret masking scrubs env-derived values >=8 chars from tool output (output scrubbing, not prevention). |
 | SWE-agent | yes | tool blocklist (no per-command prompts) | Pydantic SecretStr with env var references | Docker sandboxing via SWE-ReX. Tool blocklist prevents interactive/dangerous commands. Propagated env vars can leak into debug logs (explicitly documented). |
@@ -254,6 +270,7 @@
 | CLIO | — | — | — | — | — |
 | Codex CLI | — | — | — | — | — |
 | CrewAI | — | — | — | — | — |
+| Dorfl | low | none (no .claude/.cursor/.mcp.json/hooks); skills/ is 15 SKILL.md dirs, 12 human-invoke-only | AGENTS.md (root + website/) — repo etiquette only; CONTEXT.md 28KB glossary | monorepo preinstall "npx only-allow pnpm" + prepare "pnpm build"; published npm package has zero lifecycle scripts | yes |
 | GBrain | — | — | — | — | — |
 | Gemini CLI | — | — | — | — | — |
 | Goose | — | — | — | — | — |
@@ -268,6 +285,7 @@
 | OpenHands | — | — | — | — | — |
 | Pi | low | .pi | AGENTS.md | husky-prepare | no |
 | Plandex | — | — | — | — | — |
+| Plimsoll | low | none | none | none (declarative setuptools only; inert merge=wiki gitattribute) | no |
 | Pydantic AI | — | — | — | — | — |
 | QM | low | .claude/ (settings.json has no hooks/permissions, just includeCoAuthoredBy: false), .codex/ (canonical skill bodies), no .cursor/.aider/.continue/.pi/ | AGENTS.md, with CLAUDE.md as a real symlink to it; qm/.claude/skills/{dev-instance,update-qm,upstream-pr} symlink to .codex/skills/ | none — no preinstall/install/postinstall/prepare in package.json, no .husky/, no active git hooks, no .devcontainer/, no .envrc | no |
 | SWE-agent | — | — | — | — | — |
@@ -283,6 +301,7 @@
 | CLIO | install.sh (system-wide /opt/clio, user ~/.local/clio, or custom) | no | yes | linux, macos |
 | Codex CLI | npm install -g @openai/codex | yes | no | linux, macos, windows |
 | CrewAI | pip install crewai (uv recommended) | no | no | linux, macos, windows |
+| Dorfl | npx dorfl / npm i -g dorfl (Node ≥18, 1 dep); contract adoption needs no runtime; dorflCmd repo-pin bootstrap; install-ci scaffolds GitHub Actions | no | no | linux, macos, windows |
 | GBrain | bun add -g github:garrytan/gbrain or compile to standalone binary | yes | no | linux, macos |
 | Gemini CLI | npm install -g @google/gemini-cli (or npx zero-install) | yes | yes | linux, macos, windows |
 | Goose | shell script installer (macOS/Linux/Windows with arch detection) or npm/brew | yes | yes | linux, macos, windows |
@@ -297,6 +316,7 @@
 | OpenHands | docker run docker.all-hands.dev/all-hands-ai/openhands (primary) | no | yes | linux, macos, windows |
 | Pi | npm install -g @mariozechner/pi-coding-agent | yes | no | linux, macos, windows |
 | Plandex | one-line curl install (CLI) + Docker compose (server) | yes | yes | linux, macos |
+| Plimsoll | pip install from source only — not on PyPI, README has no install section; zero Python deps | no | no | linux |
 | Pydantic AI | pip install pydantic-ai (meta) or pydantic-ai-slim[provider,tool,integration] | no | no | linux, macos, windows |
 | QM | qm init via npm exec, deploys via the qm CLI (Fly or AWS) | no | yes | fly.io, aws |
 | SWE-agent | pip install from source | no | yes | linux, macos, windows |
@@ -312,6 +332,7 @@
 | CLIO | AGENTS.md v3.0 with complete architectural overview; 24 focused guides in docs/ covering architecture, security, MCP, memory, multi-agent; inline POD docs across all modules; SECURITY.md defines threat model; llms.txt exists for LLM consumption. |
 | Codex CLI | 24 markdown files in docs/ (getting-started, installation, auth, configuration, exec policy, sandbox, skills, slash commands, TUI design, JS REPL, contributing, CLA, licensing); automated changelog via git-cliff. |
 | CrewAI | 248 documentation files in docs/, multilingual (English, Portuguese-BR, Korean, Arabic). Covers core concepts, guides (crafting agents, customizing prompts, fingerprinting, LangGraph migration), API reference, real-world examples. Separate enterprise docs. Professional Mintlify presentation. README pitches Crews vs Flows duality. |
+| Dorfl | Excellent for its size — strong README, 29 high-quality ADRs, 9-file authoritative work/protocol contract, narrative changesets CHANGELOG, SvelteKit landing site. No API reference or tutorial, no LICENSE, and heavy prose density (28KB CONTEXT.md) taxes newcomers. |
 | GBrain | Extensive for its age. README (710 lines) covers architecture, setup, knowledge model, search internals, schema, chunking, commands, storage estimates. CLAUDE.md for AI-assisted development. 6 docs + 7 skill markdown files as agent-facing playbooks. CONTRIBUTING.md, CHANGELOG.md, TODOS.md. |
 | Gemini CLI | Polished README with CI badges and release channel info; GEMINI.md at root; extensive /docs/ with 22 CLI guides, 11 tool docs, hooks/extensions/core/ reference sections; ROADMAP.md; JSON schema for settings; CONTRIBUTING.md and SECURITY.md. |
 | Goose | External Docusaurus site (goose-docs.ai) with guides, tutorials, architecture, MCP guides, troubleshooting. In-repo: CONTRIBUTING.md, GOVERNANCE.md, MAINTAINERS.md, SECURITY.md, RELEASE.md, CUSTOM_DISTROS.md. OpenAPI schema generation in server crate. |
@@ -326,6 +347,7 @@
 | OpenHands | README links to external docs at docs.openhands.dev. Inline READMEs in key directories. Jinja2 prompt templates as executable documentation. 30+ markdown microagent definitions. V0 deprecation headers on every legacy file provide migration guidance. |
 | Pi | Per-package READMEs and CHANGELOGs; 24 topical docs under packages/coding-agent/docs; AGENTS.md codifies rules for both humans and agents working in the repo. |
 | Plandex | README with workflow diagram and cloud-shutdown notice; external docs at docs.plandex.ai; inline docs sparse; prompt templates in model/prompts/ serve as implicit behavioral docs. |
+| Plimsoll | ~10k lines, exceptionally honest — 16-section SPEC with dated amendments citing measured failures, DIVERGENCES spec-vs-code ledger, per-run DEVLOG with real costs, evidence/ dirs so citations resolve. But author-centric: no install guide, no quickstart, no API reference, and design citations resolve only on the author's machine. |
 | Pydantic AI | Hosted at ai.pydantic.dev (Mintlify). In-repo — README, AGENTS.md, CLAUDE.md, CONTRIBUTING.md at root; per-package READMEs; extensive example collection (weather agent, SQL generation, RAG, Slack lead qualifier, streaming, roulette wheel, flight booking, data analyst, bank support, chat app). AGENTS.md documents "strong primitives over batteries", backward compatibility policy, 100% coverage goal. |
 | QM | Thorough README with architecture diagram, security-posture summary, and private-fork instructions. docs/ holds only getting-started.md and a detailed deploy-directory.md. SECURITY.md is unusually candid: full threat model plus a 15-item known-limitations list. CONTRIBUTING.md asks for informal text proposals in adrs/, not code diffs; adrs/ currently holds only a .gitkeep. |
 | SWE-agent | MkDocs-Material site at swe-agent.com with 40+ pages (installation, usage, custom tools, trajectories, API reference); CONTRIBUTING.md; README links to NeurIPS paper and related projects (SWE-bench, SWE-smith, SWE-ReX, mini-SWE-agent). |

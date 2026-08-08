@@ -35,6 +35,7 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 | [SWE-agent](reviews/coding/swe-agent.md) | Python | [SWE-agent/SWE-agent](https://github.com/SWE-agent/SWE-agent) | Maintenance mode |
 | [Plandex](reviews/coding/plandex.md) | Go | [plandex-ai/plandex](https://github.com/plandex-ai/plandex) | Dormant since Oct 2025 |
 | [Pi](reviews/coding/pi.md) | TypeScript | [badlogic/pi-mono](https://github.com/badlogic/pi-mono) | |
+| [Plimsoll](reviews/coding/plimsoll.md) | Python | [EdwardAThomson/plimsoll](https://github.com/EdwardAThomson/plimsoll) | Corpus author's own project (disclosed in review) |
 
 ### Category C — Agent Frameworks/Libraries
 
@@ -48,6 +49,7 @@ This is not a benchmark or a ranking. It's a technical review aimed at helping d
 | [AutoGen](reviews/frameworks/autogen.md) | Python + C# | [microsoft/autogen](https://github.com/microsoft/autogen) | Maintenance mode — see [MAF](reviews/frameworks/microsoft-agent-framework.md) |
 | [Microsoft Agent Framework](reviews/frameworks/microsoft-agent-framework.md) | Python + C# | [microsoft/agent-framework](https://github.com/microsoft/agent-framework) | |
 | [Pydantic AI](reviews/frameworks/pydantic-ai.md) | Python | [pydantic/pydantic-ai](https://github.com/pydantic/pydantic-ai) | |
+| [Dorfl](reviews/frameworks/dorfl.md) | TypeScript | [wighawag/dorfl](https://github.com/wighawag/dorfl) | No license file |
 
 ## Comparisons
 

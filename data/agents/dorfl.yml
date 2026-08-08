@@ -1,0 +1,141 @@
+name: Dorfl
+slug: dorfl
+category: frameworks
+review: reviews/frameworks/dorfl.md
+status: active
+
+design_philosophy:
+  approach: "Git is the entire database — folder-as-status markdown ledger + atomic lock-ref claims orchestrating external coding agents, no server, no DB"
+  tradeoff: "No license, no agent sandboxing, pi-centric harness, dense solo-authored methodology adopted wholesale"
+
+identity:
+  repo: https://github.com/wighawag/dorfl
+  commit: 0d32932b92b004c9fad6affd2eb2773eede8b9cc
+  commit_date: 2026-08-01
+  review_date: 2026-08-08
+  language: [TypeScript]
+  license: "None (no LICENSE file; ADR states AGPL-3.0 intent)"
+  loc: 161000
+  files: 378
+  dependencies:
+    direct: 1
+    notes: "runtime is commander only; src ~71k LOC, tests ~89k LOC"
+  commits: 2659
+  contributors: 8
+  stated_purpose: >
+    A small TypeScript/Node CLI that discovers, schedules, and runs work across
+    many repos — guided human loop or unattended autonomous runner — on top of a
+    file-based work/ contract and an atomic git-ref claim protocol. Dogfooded:
+    tracks its own roadmap in its own work/ tree.
+  notable_features:
+    - Atomic claims via create-only git lock-ref pushes (refs/dorfl/lock/*) — receive-pack as distributed CAS, works offline against a local bare arbiter
+    - Status-is-the-folder work ledger — one markdown file per item, git mv as state transition, conflict-safe for parallel agents
+    - Runner owns all git — the build agent only edits files; land = rebase + re-verify + integrate, conflicts never auto-resolved
+    - Prompts assembled from versioned protocol docs (CLAIM-PROTOCOL.md) copied per-repo and vendored into the package
+    - Host-only config keys — a committed dorfl.json cannot redirect which executable the host runs
+    - dorflCmd bootstrap — global binary self-forwards to the repo-pinned dorfl version
+
+capabilities:
+  architecture:
+    pattern: modular monolith (single-package CLI, ~180 modules, DI seams, git-as-database)
+    summary: >
+      commander CLI (cli.ts, 5,127 lines of dispatch) delegating to perform*
+      modules; durable state = markdown work items whose folder is their status
+      on main, transient state = per-item lock refs; pluggable
+      harness/isolation/review/issue-provider seams with one in-tree adapter
+      each; arbiter remote (GitHub or local bare repo) is the sole
+      serialization point.
+  llm_integration:
+    providers: null
+    gateway: external coding-agent CLI (harness seam — configurable agentCmd shell-out or first-class pi adapter); zero direct API calls
+    provider_list: [pi-harness-via-install-ci: anthropic, openai, custom-endpoints]
+    auth: [none in dorfl ("never touches auth/keys"); install-ci provisions GitHub secrets for the pi harness]
+    notes: Picks WHICH model (per-role build/review/tasker overrides) but never holds keys; prompts are versioned markdown protocol docs with only slug/spec placeholders substituted.
+  tool_calling:
+    pattern: inverted — no LLM tool-calling; exposes SKILL.md skills to ~21 external harnesses (vendored incur map) and parses in-band stdout contracts (TASK-STOP sentinel, JSON review verdict)
+    mcp_support: false
+    mcp_stance: n/a
+    builtin_tools: []
+    notes: Agent↔runner contract is the deterministic per-repo verify gate — "no LLM in this loop", no default gate, unset fails loud.
+  memory:
+    session_persistence: true
+    compaction: false
+    branching: false
+    vector_store: false
+    notes: >
+      All state is git — work/ folder-as-status tree committed in-repo, per-item
+      lock refs, bare hub mirrors + job worktrees under ~/.dorfl. Deadline WIP
+      checkpoints + dorfl resume for continuity; agent transcripts belong to the
+      pi harness's session files, not dorfl.
+  orchestration:
+    pattern: parallel single-agent workers — cross-repo daemon (run) / per-repo worker (do) driving deterministic gate pipelines, not a conversation loop
+    sub_agents: true
+    plan_mode: false
+    notes: Keyed semaphore caps (maxParallel/perRepoMax); claim = lock-ref CAS with no retry; Gate 1 verify + Gate 2 fresh-context review agent; land = rebase + re-verify, conflicts abort to needs-attention question files; deadline checkpoints release the lock only after verified kill of the agent's process tree; TASK-STOP sentinel bounces ambiguous tasks to a human; planning externalized into the intake→spec→tasking ledger pipeline.
+  io: [CLI (~30 commands), GitHub Actions (install-ci generated workflows), GitHub issues/PRs via gh CLI (intake front door, propose-mode PRs), Node library entry (undocumented)]
+  testing:
+    framework: vitest 4 (parallel + sequential race-pinned projects)
+    file_count: 237
+    faux_provider: true
+    coverage_signal: ~89k test lines exceed src; real integration tests driving git subprocesses against throwaway repos + local bare arbiters, incl. cross-process claim races; no coverage tooling; full suite gates CI via self-hosted dorfl verify.
+  security:
+    default_bash_sandbox: false
+    approval_gate: deterministic verify gate + optional fresh-worktree re-verify + review agent; no trust gate on repo-supplied commands (acknowledged)
+    credential_storage: ambient git creds; optional pinned bot identity (SSH IdentityAgent=none); CI auth-json mode stores self-rotating pi OAuth blob in repo secrets (acknowledged sharp edge)
+    notes: >
+      Agent spawned with inherited process.env, no container — git worktrees are
+      the only isolation. Repo-committed prepare/verify/dorflCmd run via bash -c
+      (untrusted repos execute code). Strong boundaries elsewhere: committed
+      dorfl.json blocked from host-only keys (agentCmd/piBin), runner owns all
+      git, argv-array git plumbing, content-derived slugs.
+  repo_trust_surfaces:
+    risk_level: low
+    agent_config_dirs: none (no .claude/.cursor/.mcp.json/hooks); skills/ is 15 SKILL.md dirs, 12 human-invoke-only
+    auto_loaded_instructions: AGENTS.md (root + website/) — repo etiquette only; CONTEXT.md 28KB glossary
+    lifecycle_scripts: monorepo preinstall "npx only-allow pnpm" + prepare "pnpm build"; published npm package has zero lifecycle scripts
+    install_time_exec: true
+    notes: '"dorfl skills add" writes skills into every detected harness dir machine-wide (opt-in, transparent); no LICENSE anywhere.'
+  deployment:
+    install: npx dorfl / npm i -g dorfl (Node ≥18, 1 dep); contract adoption needs no runtime; dorflCmd repo-pin bootstrap; install-ci scaffolds GitHub Actions
+    binary: false
+    docker: false
+    platforms: [linux, macos, windows]
+    notes: No Dockerfile, no hosted offering; needs git, an agent harness (pi first-class), gh for PR integration; state under ~/.dorfl.
+  docs: >
+    Excellent for its size — strong README, 29 high-quality ADRs, 9-file
+    authoritative work/protocol contract, narrative changesets CHANGELOG,
+    SvelteKit landing site. No API reference or tutorial, no LICENSE, and heavy
+    prose density (28KB CONTEXT.md) taxes newcomers.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 3
+  maturity: beta
+  innovation:
+    highlights:
+      - Claims as create-only git ref pushes — receive-pack ref lock as a serverless distributed CAS, offline-capable
+      - Status-is-the-folder markdown work ledger — conflict-safe parallel-agent state with no index or DB
+      - Prompts as versioned protocol documents pinned per adopting repo
+      - Host-only config keys — committed repo config cannot redirect host executables
+      - Land primitive — rebase + re-verify + integrate, conflicts always abort to a human question file
+  practical_utility:
+    rating: moderate
+    target_user: Developer or small team running fleets of coding agents across many repos who want serverless, DB-free, git-reviewable orchestration and accept the work/ methodology wholesale.
+  vendor_lock_in: none
+  red_flags:
+    - No license — no LICENSE file or license field; legally all-rights-reserved despite AGPL intent in own ADR
+    - Repo-controlled shell (prepare/verify/dorflCmd via bash -c) with no trust gate — untrusted repos execute code
+    - No agent sandboxing — spawned agent inherits full host env and ambient credentials
+    - Single first-class harness (pi, the author's own agent); generic agentCmd path untested in-tree
+    - CI auth-json mode keeps a long-lived OAuth refresh blob in repo secrets rotated via secret-write PAT
+    - Bus factor of one human (plus the project's own bots)
+    - No coverage measurement despite ~89k test lines
+  summary: >
+    The most git-native agent orchestrator in the corpus — markdown items whose
+    folder is their status, atomic lock-ref claims, and a runner that owns every
+    git transition through a rebase-and-re-verify land gate. Exceptional solo
+    engineering discipline (real concurrent-git integration tests, 29 ADRs,
+    versioned prompt protocols), credibly battle-tested by building itself.
+    Blocked for serious adoption by a missing license, absent agent sandboxing,
+    and a dense methodology you must buy wholesale.

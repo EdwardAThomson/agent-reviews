@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-08-03
+**Generated:** 2026-08-08
 **Source data:** [data/agents/](../data/agents/)
 
 ---
@@ -22,6 +22,7 @@
 | [CLIO](../reviews/coding/clio.md) | Coding | Perl | GPL-3.0 | A terminal-native AI code assistant written in pure Perl with zero CPAN dependencies — 10+ providers, multi-agent coordination, and a layered security model. Largely AI-pair-programmed by a solo developer. |
 | [Codex CLI](../reviews/coding/codex-cli.md) | Coding | Rust, TypeScript | Apache-2.0 | OpenAI's local-first coding agent — a 91-crate Rust monorepo with multi-platform sandboxing, multi-model support, ratatui TUI, and an MITM network proxy. |
 | [CrewAI](../reviews/frameworks/crewai.md) | Framework | Python | MIT | The role-playing multi-agent framework — Python-first with no LangChain dependency, 141k LOC monorepo, 75 bundled tools, unified memory with LanceDB, event-driven telemetry, dual Crew/Flow abstractions, and a commercial platform (CrewAI AMP) layered on MIT core. |
+| [Dorfl](../reviews/frameworks/dorfl.md) | Framework | TypeScript | None (no LICENSE file; ADR states AGPL-3.0 intent) | A small TypeScript/Node CLI that discovers, schedules, and runs work across many repos — guided human loop or unattended autonomous runner — on top of a file-based work/ contract and an atomic git-ref claim protocol. Dogfooded: tracks its own roadmap in its own work/ tree. |
 | [GBrain](../reviews/frameworks/gbrain.md) | Framework | TypeScript | MIT | A personal "second brain" that indexes markdown files into Postgres + pgvector for hybrid semantic search, exposed via MCP server and CLI. Built by Garry Tan (YC president). |
 | [Gemini CLI](../reviews/coding/gemini-cli.md) | Coding | TypeScript | Apache-2.0 | Google's open-source terminal agent — React/Ink TUI, Gemini 3 models with 1M context, Google Search grounding, A2A protocol, and a comprehensive policy engine. |
 | [Goose](../reviews/coding/goose.md) | Coding | Rust, TypeScript | Apache-2.0 | The most ambitious open-source AI agent — Rust core, 25+ LLM providers, MCP-first extension system (70+ extensions), multi-layer security pipeline, local inference, desktop app, CLI, HTTP API, and Telegram gateway. From Block (now AAIF/Linux Foundation). |
@@ -36,6 +37,7 @@
 | [OpenHands](../reviews/coding/openhands.md) | Coding | Python, TypeScript | MIT | The most feature-complete open-source AI software development platform — CodeAct paradigm, Docker/K8s sandboxing, 77.6% SWE-Bench, web UI, CLI, enterprise edition. Formerly OpenDevin. |
 | [Pi](../reviews/coding/pi.md) | Coding | TypeScript | MIT | A minimal TypeScript terminal coding harness built for extension over feature sprawl: 7-package monorepo, 17 LLM providers, four run modes (interactive/print/RPC/SDK), plus a Slack bot and GPU-pod deployment tool. |
 | [Plandex](../reviews/coding/plandex.md) | Coding | Go, Python | MIT | A Go-based AI coding agent for large projects with a novel plan/branch/sandbox workflow, 9 specialized model roles, and cumulative diff review. Cloud service wound down October 2025; self-hosted only. |
+| [Plimsoll](../reviews/coding/plimsoll.md) | Coding | Python | Apache-2.0 | An autonomous build loop for long unsupervised work: takes one prompt, writes its own spec and checklist, and builds unattended — a fresh session per item, a commit per item, and a tick only where a verify command exited 0 against the tree that item produced. Stops and says so out of band rather than continuing to look busy. |
 | [Pydantic AI](../reviews/frameworks/pydantic-ai.md) | Framework | Python | MIT | GenAI agent framework, the Pydantic way — production-stable type-safe Python framework from the Pydantic team, with generic Agent[DepsT, OutputT] dependency injection, 33 model providers, first-class MCP/A2A/AG-UI protocols, durable execution via Temporal/DBOS/Prefect, Pydantic Evals, and Logfire instrumentation. |
 | [QM](../reviews/general-purpose/qm.md) | General | TypeScript | MIT | A multiplayer agent harness for work, in Slack and on the web. Designed for startups: each employee gets an isolated workspace and can also collaborate with the agent in channels, group messages, and projects, with scoped memory, files, keychain, permissions, crons, web apps, and a durable sandbox per person and per room. |
 | [SWE-agent](../reviews/coding/swe-agent.md) | Coding | Python | MIT | A research-grade AI coding agent from Princeton (NeurIPS 2024) that pioneered the Agent-Computer Interface concept — takes GitHub issues and autonomously fixes them. State-of-the-art on SWE-bench among open-source projects. |
@@ -53,6 +55,7 @@
 | CLIO | 106k | 376 | 0 | 880 | 1 |
 | Codex CLI | 623k | 3520 | 194 | — | — |
 | CrewAI | 141.2k | 790 | 17 | — | — |
+| Dorfl | 161k | 378 | 1 | 2659 | 8 |
 | GBrain | 6.5k | — | 6 | 24 | 1 |
 | Gemini CLI | 109.8k | 2611 | 120 | — | — |
 | Goose | 142.8k | 366 | 83 | — | — |
@@ -67,6 +70,7 @@
 | OpenHands | — | 489 | 90 | — | — |
 | Pi | 175k | 607 | 60 | 3686 | 204 |
 | Plandex | 50k | 250 | — | — | — |
+| Plimsoll | 78.5k | 164 | 0 | 368 | 1 |
 | Pydantic AI | 253k | 509 | 6 | — | — |
 | QM | 235k | 1042 | 28 | — | — |
 | SWE-agent | 11.4k | 60 | 22 | — | — |
@@ -84,6 +88,7 @@
 | CLIO | Zero-dependency terminal purist — ~140 Perl modules, no CPAN, intent-based command analysis | GPL-3.0 limits corporate use, solo developer with AI-generated code, niche language |
 | Codex CLI | Enterprise-grade local coding — 91 Rust crates, multi-platform sandboxing, MITM network proxy | Deeper-than-advertised OpenAI coupling, 8k-line codex.rs god file, 194 external crates |
 | CrewAI | Intuitive multi-agent via role/goal/backstory + Crews/Flows duality — independent of LangChain | Reinvents infrastructure LangGraph gets right, large core files, commercial AMP platform gravity |
+| Dorfl | Git is the entire database — folder-as-status markdown ledger + atomic lock-ref claims orchestrating external coding agents, no server, no DB | No license, no agent sandboxing, pi-centric harness, dense solo-authored methodology adopted wholesale |
 | GBrain | Contract-first markdown second-brain — single operations table generates CLI, MCP, and tools-json with parity tests | Alpha, 5 days old, single contributor, global mutable DB connection, stub features |
 | Gemini CLI | Google-scale polish — React/Ink TUI, local Gemma classifier for model routing, platform-native sandboxing | Gemini-only vendor lock-in, Clearcut telemetry to Google, Google discontinuation risk |
 | Goose | Ambitious MCP-first platform — 25+ providers, 70+ extensions, multi-layer security pipeline, local inference | Security inspection disabled by default, 2000+ line core files, git-pinned patches, PostHog telemetry on |
@@ -98,6 +103,7 @@
 | OpenHands | Research-paper-grade AI dev platform — CodeAct paradigm, Docker/K8s sandboxing, 77.6% SWE-Bench, 6 agent types | V0/V1 migration limbo (210 legacy files), 90+ deps, enterprise directory proprietary |
 | Pi | Minimal core, extend-don't-fork — 5-file agent loop, first-class extensions/skills, anti-MCP CLI-tools stance | No default bash sandbox, single primary author, opinionated philosophy won't suit everyone |
 | Plandex | Plan/branch/sandbox for large projects — 9-role model packs, cumulative diff review, staged planning-then-implementation | Cloud shut down Oct 2025, 6 test files, single maintainer, 6+ months inactive |
+| Plimsoll | Autonomy through self-checking claims — receipt-gated ticks with executed negative controls, falsifiability-probed acceptance, probe-based memory that re-derives facts | Solo-operator Linux research vehicle — conceded permissions, no CI/coverage, no install path, bus factor of one. Author's own project (disclosed). |
 | Pydantic AI | Type-safe Python-first — generic Agent[DepsT, OutputT], ships Pydantic Evals, real-API recorded tests | Single-agent-first (no built-in multi-agent), 37+ optional dep groups, no server runtime, Logfire gravity |
 | QM | Multi-tenant org agent — one headless core, four swappable coding-agent harnesses (Pi, OpenCode, Codex, Claude Code) picked per org/scope, Slack + web + admin as separate signed-HTTP plugins | Production-shaped operational weight (5 deployable services, Postgres, Docker/AWS-microVM sandboxing) even for a single-org deployment |
 | SWE-agent | Research-first Agent-Computer Interface — tool bundles, multiple output parsers, retry-and-review loops | Team declared it superseded by mini-SWE-agent; synchronous asyncio bridge is pragmatic but fragile |
@@ -115,6 +121,7 @@
 | CLIO | 10 | yes | no | yes | none |
 | Codex CLI | — | yes | yes | yes | moderate |
 | CrewAI | 100 | yes | no | yes | none |
+| Dorfl | — | no | no | yes | none |
 | GBrain | 2 | yes | — | no | moderate |
 | Gemini CLI | 1 | yes | yes | yes | high |
 | Goose | 25 | yes | no | yes | none |
@@ -129,6 +136,7 @@
 | OpenHands | — | yes | yes | yes | none |
 | Pi | 17 | no | no | no | none |
 | Plandex | 12 | no | no | yes | none |
+| Plimsoll | 3 | no | yes | no | none |
 | Pydantic AI | 33 | yes | no | no | none |
 | QM | — | yes | yes | no | none |
 | SWE-agent | — | no | yes | no | none |

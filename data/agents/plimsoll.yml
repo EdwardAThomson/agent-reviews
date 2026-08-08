@@ -1,0 +1,146 @@
+name: Plimsoll
+slug: plimsoll
+category: coding
+review: reviews/coding/plimsoll.md
+status: active
+
+design_philosophy:
+  approach: "Autonomy through self-checking claims — receipt-gated ticks with executed negative controls, falsifiability-probed acceptance, probe-based memory that re-derives facts"
+  tradeoff: "Solo-operator Linux research vehicle — conceded permissions, no CI/coverage, no install path, bus factor of one. Author's own project (disclosed)."
+
+identity:
+  repo: https://github.com/EdwardAThomson/plimsoll
+  commit: 6357bab8491b185ea6df2a1996f39afc8d0247ef
+  commit_date: 2026-08-08
+  review_date: 2026-08-08
+  language: [Python]
+  license: Apache-2.0
+  loc: 78500
+  files: 164
+  dependencies:
+    direct: 0
+    notes: "stdlib-only, with a caveat — the Anthropic API route lazily imports an unshipped sibling project (llm_backends); src ~33k LOC (half narrative docstring), tests ~45k"
+  commits: 368
+  contributors: 1
+  stated_purpose: >
+    An autonomous build loop for long unsupervised work: takes one prompt,
+    writes its own spec and checklist, and builds unattended — a fresh session
+    per item, a commit per item, and a tick only where a verify command exited
+    0 against the tree that item produced. Stops and says so out of band
+    rather than continuing to look busy.
+  notable_features:
+    - Receipt gate — a tick requires exit 0 + recorded tree hash + an executed negative control proving the verify can fail
+    - Falsifiability-probed acceptance criteria with baseline discounting (three-moment check closes the self-grading loophole)
+    - Probe-based cross-run memory — stores commands that re-derive facts, re-probed at moment of consequence, contradictions flagged never auto-repaired
+    - Self-supervising watcher — alerts.jsonl + notify-cmd, with UNREADABLE (cannot see) as its own alert and watch-the-watcher heartbeats
+    - DB-trigger-enforced freeze and append-only invariants; events.jsonl projection with gap-free audited seq
+    - Cost honesty — cost_usd is NULL when unknown ("0.0 is a lie"), per-run dollar figures published in DEVLOG.md
+
+capabilities:
+  architecture:
+    pattern: modular monolith (stdlib-only, 57 modules, event-sourced; per-run SQLite + append-only JSONL projection)
+    summary: >
+      Layered import graph with no cycles (db/events → queue/receipts →
+      payload/step/plan → loop → lifecycle); state.db per target with 28
+      versioned migrations and trigger-enforced freeze/append-only; events.jsonl
+      written gap-free-seq under the same transaction so a watcher audits
+      without a DB handle; core modules 60-73% narrative docstring citing the
+      run ID behind every rule.
+  llm_integration:
+    providers: 3
+    gateway: OpenRouter as a first-class metered route (stdlib urllib; cost read from gateway, never computed); no LiteLLM/proxy
+    provider_list: [anthropic-api (via unshipped llm_backends sibling), openrouter, claude-cli (claude -p), codex-cli]
+    auth: [ANTHROPIC_API_KEY, OPENROUTER_API_KEY, CLI subscription auth (metered keys stripped from delegate env)]
+    notes: Four routes behind two seams (loop executor owns the tool loop; delegate pipes the identical payload to a CLI) declared in one registry; 4-rung recorded error ladder (backoff, one condense, key rotation, model fallback); payload.py is the single prompt assembler with a pinned deterministic repo map; codex route untested against a live call (admitted in docstring).
+  tool_calling:
+    pattern: two tools only on the loop path (read_file/write_file, per-step table, COMMIT gets none) dispatched through one door; delegate hands the whole tool loop to the CLI under bypassPermissions
+    mcp_support: false
+    mcp_stance: opposed
+    builtin_tools: [read_file, write_file]
+    notes: MCP omission is documented and deliberate ("skills-as-CLI"); the extension channel offered to agents is plimsoll's own CLI (finding/amend) written into the prompt — the one channel both executors reach.
+  memory:
+    session_persistence: true
+    compaction: false
+    branching: false
+    vector_store: false
+    notes: >
+      SQLite state.db per target repo + events.jsonl; cross-run probe/
+      observation/memo store re-derives facts by command instead of caching
+      values and emits memory.contradicted on drift; fresh model session per
+      step, carryover only through the DB; resume needs no checkpoint beyond
+      the queue (wart — max-parallel not recorded, resumes serial).
+  orchestration:
+    pattern: single-agent plan-first pipeline — SURVEY → INTERPRET (falsifiability-probed acceptance) → PLAN frozen behind 6 named judgements → parallel per-item worktrees with serial ordinal landing barrier → receipt gate → contamination gate → one harness commit per item → baseline-discounted verdict
+    sub_agents: false
+    plan_mode: true
+    notes: Retries cap at 2 then park blocked(sticky, human unblock only); stall detection alerts but never stops; foreign commits detected after the fact not prevented (candid that prompts are not guarantees); ancestry break halts unconditionally; nearly every gate cites the run ID of the failure that motivated it.
+  io: [CLI (run/pause/stop/resume/finding/memo/amend/unblock/progress), detached daemon (--detach, flock lock), watcher alert stream (alerts.jsonl + --notify-cmd JSON-line stdin; FAIL/STALL/BLOCKED/EXHAUSTED/ENDED/SILENT/UNREADABLE), tail-able events.jsonl, rendered markdown artifacts]
+  testing:
+    framework: pytest (106 files, 1,622 collected)
+    file_count: 106
+    faux_provider: true
+    coverage_signal: 1,617/1,622 green in 102s run live for this review (2 fails environmental); 49 files drive real git repos/worktrees, one file uses unittest.mock, 246 control-named tests practice the negative-control discipline; no CI, no coverage tooling.
+  security:
+    default_bash_sandbox: true
+    approval_gate: none — bypassPermissions conceded at the call site; detective controls instead (receipt gate, two-armed contamination check)
+    credential_storage: env vars only; SSH_AUTH_SOCK + all four API keys stripped from delegate env, but keys visible to model-authored verify commands
+    notes: >
+      unshare userns + .env-over-/dev/null for harness-run verifies — "hygiene,
+      not containment" (no network isolation, root .env by exact name, silent
+      degrade to plain shell without userns). Write scope advisory post-commit
+      except pre-write in the harness tool loop. README's threat-model honesty
+      verified accurate against code; stated model is one operator, one
+      machine, no security review.
+  repo_trust_surfaces:
+    risk_level: low
+    agent_config_dirs: none
+    auto_loaded_instructions: none
+    lifecycle_scripts: none (declarative setuptools only; inert merge=wiki gitattribute)
+    install_time_exec: false
+    notes: Near-null trust surface; archived evidence/ checklists embed author-machine shell one-liners as data, executed by nothing.
+  deployment:
+    install: pip install from source only — not on PyPI, README has no install section; zero Python deps
+    binary: false
+    docker: false
+    platforms: [linux]
+    notes: Needs git + claude CLI (delegate) or OPENROUTER_API_KEY (stdlib route) or unshipped llm_backends (API route) or codex CLI; sandbox needs Linux userns, degrades elsewhere; fcntl rules out Windows; --detach is a well-reasoned setsid+flock daemon.
+  docs: >
+    ~10k lines, exceptionally honest — 16-section SPEC with dated amendments
+    citing measured failures, DIVERGENCES spec-vs-code ledger, per-run DEVLOG
+    with real costs, evidence/ dirs so citations resolve. But author-centric:
+    no install guide, no quickstart, no API reference, and design citations
+    resolve only on the author's machine.
+
+opinions:
+  ratings:
+    code_quality: 4
+    maintainability: 3
+  maturity: alpha
+  innovation:
+    highlights:
+      - Receipt gate — ticks require an executed negative control proving the verify can fail; unique in this corpus
+      - Falsifiability-probed acceptance + baseline discounting — closes the self-grading loophole
+      - Probe-based memory — commands that re-derive facts, re-probed at moment of consequence, never trusted from cache
+      - Watcher with UNREADABLE as its own alert and watch-the-watcher heartbeats
+      - Evidence-cited design — every spec clause carries the run ID that motivated it; two-way spec/code divergence ledger
+  practical_utility:
+    rating: moderate
+    target_user: A single Linux operator wanting long unattended builds whose claims check themselves, within a conceded one-operator threat model; also harness authors mining the discipline as a research artifact.
+  vendor_lock_in: none
+  red_flags:
+    - '"Standard library only" overstated — Anthropic API route needs an unshipped sibling project; one shipped test fails without it'
+    - No CI and no coverage measurement, at odds with its own receipts-for-every-claim philosophy
+    - Permission gate conceded (bypassPermissions) — agent unconstrained inside the target (documented)
+    - Metered API keys visible to model-authored verify commands; no network isolation
+    - Sandbox silently degrades to plain shell on kernels without unprivileged userns
+    - Not installable as documented — no PyPI, no install instructions
+    - Bus factor of one; spec citations resolve only on the author's machine
+    - events.jsonl orphan-line/duplicate-seq edge after a mid-write crash, undeclared in the stream contract
+  summary: >
+    The most epistemically disciplined harness in this corpus — ticks earned by
+    receipts with executed negative controls, falsifiable baseline-discounted
+    acceptance, memory that re-derives facts, and docs that record every
+    failure with its cost. Equally, it is one person's Linux research vehicle:
+    alpha packaging, conceded permissions, no CI, an unshipped dependency on
+    one route. Reviewed with the disclosure that its author maintains this
+    corpus.

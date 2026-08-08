@@ -6,7 +6,7 @@
   Regenerate with: python3 scripts/build_comparisons.py
 -->
 
-**Generated:** 2026-08-03
+**Generated:** 2026-08-08
 **Source data:** [data/agents/](../data/agents/)
 
 **Note:** These are subjective assessments backed by evidence from the source code. See individual reviews for detailed justifications.
@@ -24,6 +24,7 @@
 | [CLIO](../reviews/coding/clio.md) | 3.5/5 | beta | 3/5 | none |
 | [Codex CLI](../reviews/coding/codex-cli.md) | 4/5 | beta | 3/5 | moderate |
 | [CrewAI](../reviews/frameworks/crewai.md) | 3.5/5 | production | 3/5 | none |
+| [Dorfl](../reviews/frameworks/dorfl.md) | 4/5 | beta | 3/5 | none |
 | [GBrain](../reviews/frameworks/gbrain.md) | 4/5 | alpha | 4/5 | moderate |
 | [Gemini CLI](../reviews/coding/gemini-cli.md) | 4/5 | beta | 4/5 | high |
 | [Goose](../reviews/coding/goose.md) | 4/5 | production | 3.5/5 | none |
@@ -38,6 +39,7 @@
 | [OpenHands](../reviews/coding/openhands.md) | 3.5/5 | production | 3/5 | none |
 | [Pi](../reviews/coding/pi.md) | 4/5 | production | 4/5 | none |
 | [Plandex](../reviews/coding/plandex.md) | 3/5 | dormant | 2/5 | none |
+| [Plimsoll](../reviews/coding/plimsoll.md) | 4/5 | alpha | 3/5 | none |
 | [Pydantic AI](../reviews/frameworks/pydantic-ai.md) | 4.5/5 | production | 4.5/5 | none |
 | [QM](../reviews/general-purpose/qm.md) | 4/5 | production | 4/5 | none |
 | [SWE-agent](../reviews/coding/swe-agent.md) | 4/5 | maintenance | 3.5/5 | none |
@@ -53,6 +55,7 @@
 | CLIO | Zero CPAN dependencies for ~140 modules (trivially portable deployment); InvisibleCharFilter with severity classification and audit function; Intent-based command analysis rejecting blocklists as fundamentally incomplete; Multi-agent Broker over Unix domain sockets with API rate limiting; Genuine dogfooding story — AI-built AI tool |
 | Codex CLI | Two-phase memory extraction with tiered-cost models; MITM network proxy on rama HTTP framework for per-host TLS policy; arg0 multi-binary dispatch via temporary symlinks; Vendored bubblewrap with fallback and version-probing; Multi-platform sandboxing with platform-native primitives |
 | CrewAI | Role/goal/backstory agent pattern (popularized this approach); Unified memory with LLM-inferred metadata rather than forcing short/long/entity buckets; Crews + Flows duality (autonomous collaboration vs event-driven precise control); Guardrails with automatic retry budget at task level; Composite memory scoring with tunable weights (recency/semantic/importance) |
+| Dorfl | Claims as create-only git ref pushes — receive-pack ref lock as a serverless distributed CAS, offline-capable; Status-is-the-folder markdown work ledger — conflict-safe parallel-agent state with no index or DB; Prompts as versioned protocol documents pinned per adopting repo; Host-only config keys — committed repo config cannot redirect host executables; Land primitive — rebase + re-verify + integrate, conflicts always abort to a human question file |
 | GBrain | Compiled truth + timeline knowledge model (mirrors intelligence analysis tradecraft); Three-tier chunking (recursive for speed, semantic with Savitzky-Golay smoothing, LLM-guided for high-value); Contract-first operations — single definition generates CLI, MCP, and tools-json with parity test; Hand-rolled Savitzky-Golay smoothing in semantic chunker; Git-to-brain incremental sync with ancestry validation |
 | Gemini CLI | Gemma classifier for local complexity-aware model routing; Platform-native sandboxing with OS-level integration (bwrap/seatbelt/Windows C#); FolderTrustDiscoveryService as supply-chain defense; Memory/perf regression baselines as committed JSON; A2A protocol support for inter-agent communication |
 | Goose | MCP-first extension architecture (70+ extensions via open protocol); Most sophisticated multi-layer security pipeline of any reviewed agent; Tool shim for non-tool-capable models; Integrated local inference (llama.cpp + Candle with Metal/CUDA); ACP for inter-agent communication; Recipes/skills for declarative task config |
@@ -67,6 +70,7 @@
 | OpenHands | CodeAct paradigm — unifying agent actions into code (published paper); 8-strategy condenser pipeline for context window management; Microagents/skills as markdown behavioral overlays; Issue resolver across 6 git providers; 77.6% SWE-Bench — among highest publicly reported |
 | Pi | Faux provider for deterministic tool-use tests; BashOperations pluggable interface for shell execution; Anti-MCP stance — skills as CLI tools instead of MCP servers; Slack-native mom with opt-in Docker sandbox; Pi packages as npm-distributed extensions/skills/templates/themes |
 | Plandex | Cumulative diff review sandbox pattern; 9-role multi-model system with 16+ curated packs; Plan/branch/rewind version-control-for-AI-interactions; Staged planning-then-implementation architecture |
+| Plimsoll | Receipt gate — ticks require an executed negative control proving the verify can fail; unique in this corpus; Falsifiability-probed acceptance + baseline discounting — closes the self-grading loophole; Probe-based memory — commands that re-derive facts, re-probed at moment of consequence, never trusted from cache; Watcher with UNREADABLE as its own alert and watch-the-watcher heartbeats; Evidence-cited design — every spec clause carries the run ID that motivated it; two-way spec/code divergence ledger |
 | Pydantic AI | Generic typing of agents — Agent[DepsT, OutputT] catches dependency mismatches at type-check time (unique); RunContext[DepsT] dependency injection gives tools typed access to shared state without globals; Deferring durable execution to real orchestrators (Temporal/DBOS/Prefect) rather than reinventing a checkpointer; Pydantic Evals as first-class concern with typed Case[Input, Output] and composable Evaluator; Real API recordings over mocks — quality-forcing function; Builtin tools with provider-adaptive implementations (DuckDuckGo/Tavily/Exa) |
 | QM | Person- and room-scoped memory/files/keychain/sandbox/crons under one org-level agent; Four coding-agent harnesses behind one interface with admin-controlled per-org/per-scope allowlisting; Command-policy scanner that unwraps real shell obfuscation before matching, not a naive regex; Private-fork-not-GitHub-fork model with tooling (update-qm, upstream-pr) enforcing the core/org boundary both ways |
 | SWE-agent | Agent-Computer Interface (ACI) concept — interface between agent and environment matters as much as the model; Tool bundle system with shell scripts + YAML schemas; Multiple output parsers (FunctionCalling / ThoughtAction / XML / JSON / BashCodeBlock); Review/retry loop architecture (ScoreRetryLoop, ChooserRetryLoop); Container-side state commands as environment interface |
@@ -82,6 +86,7 @@
 | CLIO | GPL-3.0 limits corporate adoption (competitors use Apache-2.0 or MIT); Solo developer sustainability — ~140 modules with one human is a burnout vector; AI-generated code density may contain patterns the author doesn't fully understand; Test depth shallow — ~140 test files verify object creation more than socket communication |
 | Codex CLI | OpenAI lock-in deeper than advertised — WireApi enum has only Responses variant; Legacy Chat API removed; memory phases hardcode OpenAI model names; 7961-line codex.rs god-file is a maintenance risk; #![allow(unsafe_op_in_unsafe_fn)] in Windows sandbox and empty Windows hardening function — acknowledged but unresolved; Vendored bubblewrap C code in Cargo.lock is unusual supply-chain surface for Rust |
 | CrewAI | Telemetry enabled by default — three opt-out env vars exist but many users won't realize outbound OTLP requests happen; CrewAI AMP gravity — deployment, observability, enterprise features all flow to commercial platform; "5.76x faster than LangGraph" README benchmark claim is marketing artifact; Large core files (flow.py 3458, llm.py 2519, crew.py 2276, agent/core.py 1822); No built-in sandboxing — tool execution runs in-process |
+| Dorfl | No license — no LICENSE file or license field; legally all-rights-reserved despite AGPL intent in own ADR; Repo-controlled shell (prepare/verify/dorflCmd via bash -c) with no trust gate — untrusted repos execute code; No agent sandboxing — spawned agent inherits full host env and ambient credentials; Single first-class harness (pi, the author's own agent); generic agentCmd path untested in-tree; CI auth-json mode keeps a long-lived OAuth refresh blob in repo secrets rotated via secret-write PAT; Bus factor of one human (plus the project's own bots); No coverage measurement despite ~89k test lines |
 | GBrain | Global mutable DB connection in db.ts — breaks under concurrent access; database_url in plaintext config contains password (0600 permissions help but it's still credentials on disk); Stub implementations — rewriteLinks is no-op (broken cross-references on rename), file_url returns fake URL, SQLite engine not implemented; No MCP rate limiting or auth — any MCP client can call mutating operations without throttling; Single contributor, 5 days old at review time — bus factor of 1 |
 | Gemini CLI | Complete Gemini vendor lock-in via @google/genai client — provider switch would require rewriting core abstractions; Google discontinuation risk (mitigated by Apache-2.0 and open-source code); Scheduler LegacyHack type alias and ink overridden to a non-upstream fork (@jrichman/ink); Clearcut telemetry sends data to Google — users should understand this |
 | Goose | Security inspection disabled by default — SECURITY_PROMPT_ENABLED=false, adversary inspector only runs if adversary.md exists; Dependency pinning to git revisions (opentelemetry, sacp) — fragile, depends on external git availability; PostHog telemetry enabled by default; users should verify opt-out; Several files exceed 2000 lines (agent.rs 2470, extension_manager.rs 2357, session_manager.rs 2163, goose-acp/server.rs 3265) |
@@ -96,6 +101,7 @@
 | OpenHands | V0/V1 limbo — 210 legacy files tagged for removal but still contain active production logic, removal deadline slipped; Dependency bloat — ~90+ direct deps including kubernetes, boto3, GCP, playwright, redis, sqlalchemy; Test location unclear — unit tests appear outside openhands/ package, open-source core coverage hard to assess; Pinned openai==2.8.0 due to litellm incompatibility, blocking newer OpenAI features |
 | Pi | No default bash sandbox (user must install or write a BashOperations extension); One primary author despite 204 contributors (bus factor); 22 runtime deps in coding-agent alone; Active encouragement to publish session transcripts to Hugging Face |
 | Plandex | Cloud service shut down October 2025 — strongest signal of reduced investment; Near-zero test coverage (6 test files across ~250 source files); Single maintainer (bus factor of 1); Arbitrary code execution via LLM-authored _apply.sh with only optional cgroup isolation; Python subprocess dependency complicates debugging and deployment; 6+ months inactive — no commits since October 2025 |
+| Plimsoll | "Standard library only" overstated — Anthropic API route needs an unshipped sibling project; one shipped test fails without it; No CI and no coverage measurement, at odds with its own receipts-for-every-claim philosophy; Permission gate conceded (bypassPermissions) — agent unconstrained inside the target (documented); Metered API keys visible to model-authored verify commands; no network isolation; Sandbox silently degrades to plain shell on kernels without unprivileged userns; Not installable as documented — no PyPI, no install instructions; Bus factor of one; spec citations resolve only on the author's machine; events.jsonl orphan-line/duplicate-seq edge after a mid-write crash, undeclared in the stream contract |
 | Pydantic AI | No built-in multi-agent orchestration — single-agent-first design. Need to build your own patterns with pydantic-graph.; Logfire ecosystem gravity — first-class instrumentation flows through Pydantic's commercial observability platform; Optional dependency sprawl (37+ groups) — users must think about what to install; No server runtime — wire up A2A/AG-UI/FastAPI yourself (arguably a feature); Large core files — agent/__init__.py (2734), messages.py (2553), _agent_graph.py (1945), mcp.py (1483) |
 | QM | Egress enforcement is "none" by default on both sandbox backends; Command policy is documented and confirmed as bypassable text classification; Sandbox credentials for logged-in services sit on disk in plaintext while in use; Contribution model accepts only informal proposals, not code, from outside contributors |
 | SWE-agent | Entering maintenance mode — README warns development has shifted to mini-SWE-agent; API key leakage — docstring warns propagated env var values can appear in debug log files; Possible logic inversion bug at run_single.py:153; Synchronous asyncio.run() bridge around SWE-ReX may break in existing event loops |
@@ -107,8 +113,10 @@
 | GBrain | alpha |
 | memU | alpha |
 | Nanobot | alpha |
+| Plimsoll | alpha |
 | CLIO | beta |
 | Codex CLI | beta |
+| Dorfl | beta |
 | Gemini CLI | beta |
 | Hermes Agent | beta |
 | NanoClaw | beta |
@@ -140,6 +148,7 @@
 | CLIO | moderate | Terminal-native developers distrusting Electron wrappers; ops/sysadmin on servers with Perl but not Node/Python; privacy-conscious users wanting audit capability. |
 | Codex CLI | high | Power users who live in the terminal and need controlled local execution with strong sandboxing. Less suitable for casual ChatGPT users. |
 | CrewAI | high | Teams that want to build multi-agent applications without thinking hard about graph semantics — intuitive role/goal/backstory mental model. |
+| Dorfl | moderate | Developer or small team running fleets of coding agents across many repos who want serverless, DB-free, git-reviewable orchestration and accept the work/ methodology wholesale. |
 | GBrain | moderate | Someone with a large markdown corpus (1000+ files) who uses an MCP-compatible AI agent and wants semantic search. |
 | Gemini CLI | high | Google-ecosystem developers wanting a free, well-integrated coding assistant with 1M-context models. |
 | Goose | very high | Teams or individuals wanting an extensible, provider-agnostic AI agent with production-grade sessions, security, and local inference. |
@@ -154,6 +163,7 @@
 | OpenHands | very high | Teams needing a complete AI coding platform today — real sandbox execution, web browsing, file editing, issue resolution across multiple git providers. |
 | Pi | high | TypeScript-fluent, terminal-first developer who wants a harness to extend rather than fight. |
 | Plandex | moderate | Self-hosted users with Docker+PostgreSQL capacity wanting a capable coding agent with strong context management for large projects — but prepared for potential abandonment. |
+| Plimsoll | moderate | A single Linux operator wanting long unattended builds whose claims check themselves, within a conceded one-operator threat model; also harness authors mining the discipline as a research artifact. |
 | Pydantic AI | high | Python teams who actually care about type safety — mypy/pyright strict users. Teams already using Pydantic (FastAPI, data validation). Teams needing evaluation infrastructure or durable execution. |
 | QM | high | An organization wanting one Slack- and web-reachable agent shared across employees with per-person/per-room isolation, not committed to a single model vendor's agent loop. |
 | SWE-agent | moderate | Researchers or practitioners running SWE-bench at scale; reference implementation for agent design. Team recommends mini-SWE-agent for new projects. |
@@ -187,6 +197,10 @@ A technically impressive, well-engineered Rust monorepo solving a real problem �
 ### CrewAI
 
 The most accessible multi-agent framework in Python. Role/goal/backstory pattern and Crews/Flows duality give teams an intuitive mental model without sacrificing production features. MIT core is complete enough to build real applications, and commercial AMP platform provides a credible deployment path. Main tradeoffs — "independent from LangChain" positioning comes at cost of reinventing infrastructure LangGraph gets right (graph semantics, checkpointing, time-travel), and architectural direction is trending toward feature accretion.
+
+### Dorfl
+
+The most git-native agent orchestrator in the corpus — markdown items whose folder is their status, atomic lock-ref claims, and a runner that owns every git transition through a rebase-and-re-verify land gate. Exceptional solo engineering discipline (real concurrent-git integration tests, 29 ADRs, versioned prompt protocols), credibly battle-tested by building itself. Blocked for serious adoption by a missing license, absent agent sandboxing, and a dense methodology you must buy wholesale.
 
 ### GBrain
 
@@ -243,6 +257,10 @@ Best-argued counterexample to "more features = better coding agent." Minimal cor
 ### Plandex
 
 An architecturally innovative coding agent with genuinely novel plan/branch/sandbox workflow and the most sophisticated multi-model role system reviewed. The cumulative diff sandbox addresses a real pain point. However, October 2025 cloud shutdown, minimal test coverage, and 6+ months of inactivity make it a risky choice for new adoption. Valuable as an architectural reference.
+
+### Plimsoll
+
+The most epistemically disciplined harness in this corpus — ticks earned by receipts with executed negative controls, falsifiable baseline-discounted acceptance, memory that re-derives facts, and docs that record every failure with its cost. Equally, it is one person's Linux research vehicle: alpha packaging, conceded permissions, no CI, an unshipped dependency on one route. Reviewed with the disclosure that its author maintains this corpus.
 
 ### Pydantic AI
 
